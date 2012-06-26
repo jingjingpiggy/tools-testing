@@ -1,0 +1,181 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# vim: ts=4 et sw=4 sts=4 ai sta:
+
+"""
+This script creates linked project in OBS and waits
+until all builds are finished.
+
+Author: Ed Bartosh <eduard.bartosh@intel.com>
+Licence: MIT
+"""
+
+import sys
+import os
+import tempfile
+import argparse
+import hashlib
+import time
+
+from collections import defaultdict
+from urllib import quote_plus, pathname2url
+
+import osc.conf
+import osc.core
+
+PRJ_TEMPLATE = """
+<project name="%(target)s">
+  <title/>
+  <description/>
+  <link project="%(src)s"/>
+  <person role="maintainer" userid="%(user)s"/>
+"""
+
+REPO_TEMPLATE = """
+  <repository name="%(name)s" linkedbuild="localdep">
+    <path repository="%(name)s" project="%(src)s"/>
+"""
+
+PKG_TEMPLATE = """
+<package project="%(target)s" name="%(pkgname)s">
+  <title/>
+  <description/>
+</package>
+"""
+
+FILE_TEMPLATE = """
+<entry md5="%(md5)s" name="%(fname)s"/>
+"""
+
+def parse_cmdline(argv):
+    """Parse commandline with argparse."""
+    parser = argparse.ArgumentParser(description="Submit package to OBS")
+    for arg in ("--build", "--project", "--package"):
+        parser.add_argument(arg)
+    parser.add_argument("paths", nargs='+')
+    parser.add_argument("--timeout", type=int, default=60)
+    options = parser.parse_args(argv)
+    if not options.build or not options.project or not options.package:
+        parser.error('mandatory argument is not given')
+    return options
+
+def link_project(apiurl, src, target):
+    """Creates linked(target) project based on existing
+       original(src) project.
+    """
+    # generate configuration for target project based on
+    # configuration of source project
+    targetmeta = PRJ_TEMPLATE % {'target': target, 'src': src,
+                                 'user': osc.conf.config['user']}
+    repos = defaultdict(list)
+    for repo in osc.core.get_repos_of_project(apiurl, src):
+        repos[repo.name].append(repo.arch)
+    for name in repos:
+        targetmeta += REPO_TEMPLATE % {'name': name, 'src': src}
+        for arch in repos[name]:
+            targetmeta += "<arch>%s</arch>\n" % arch
+        targetmeta += "</repository>\n"
+    targetmeta += "</project>\n"
+
+    put_meta(apiurl, "prj", quote_plus(target), targetmeta)
+
+def put_meta(apiurl, metatype, path_args, data):
+    """Wrapper to put metadata to OBS."""
+    url = osc.core.make_meta_url(metatype, path_args, apiurl, False)
+    fileh, filename = tempfile.mkstemp(prefix="osc_metafile.",
+                                       suffix=".xml", text=True)
+    os.write(fileh, data)
+    os.close(fileh)
+    osc.core.http_PUT(url, file=filename)
+    os.unlink(filename)
+
+def hexdigest(fhandle, block_size=4096):
+    """Calculates hexdigest of file content."""
+    md5obj = hashlib.new('md5')
+    while True:
+        data = fhandle.read(block_size)
+        if not data:
+            break
+        md5obj.update(data)
+    return md5obj.hexdigest()
+
+def add_files(apiurl, project, package, files):
+    """Commits files to OBS."""
+    query = {'cmd'    : 'commitfilelist',
+             'user'   : osc.conf.get_apiurl_usr(apiurl)}
+    url = osc.core.makeurl(apiurl, ['source', project, package], query=query)
+
+    xml = "<directory>"
+    for fpath in files:
+        with open(fpath) as fhandle:
+            xml += FILE_TEMPLATE % {"fname": os.path.basename(fpath),
+                                    "md5": hexdigest(fhandle)}
+    xml += "</directory>"
+
+    osc.core.http_POST(url, data=xml)
+    for fpath in files:
+        put_url = osc.core.makeurl(
+            apiurl, ['source', project, package,
+                     pathname2url(os.path.basename(fpath))],
+            query="rev=repository")
+        osc.core.http_PUT(put_url, file=fpath)
+    osc.core.http_POST(url, data=xml)
+
+def build_ok(apiurl, project, timeout):
+    """Waits until build is successfully finished or failed."""
+    statuses = ['bla']
+    while statuses:
+        time.sleep(timeout)
+        for pkginfo in osc.core.get_prj_results(apiurl,
+                                                project,
+                                                hide_legend=True,
+                                                csv=True)[1:]:
+            splitted = pkginfo.split(';')
+            statuses = [status for status in splitted[1:] \
+                            if status not in ('excluded', 'succeeded')]
+            package = splitted[0]
+            if [st for st in statuses if st not in ('building', 'scheduled',
+                                                    'dispatching')]:
+                print 'package %s failed to build: %s' % (package, splitted[1:])
+                return False
+            print 'waiting for %s: %s' % (package, splitted[1:])
+    return True
+
+
+def main(argv):
+    """Script entry point."""
+
+    # get parameters from command line and environment
+    params = parse_cmdline(argv[1:])
+
+    print "processing package %s : project %s, build %s" % \
+          (params.package, params.project, params.build)
+
+    # parse osc config
+    osc.conf.get_config()
+    apiurl = osc.conf.config['apiurl']
+
+    project = "%s-%s-%s" % (params.project, params.package, params.build)
+
+    print "linking project %s to %s" % (params.project, project)
+    link_project(apiurl, params.project, project)
+
+    print "creating package %s in linked project %s" % (params.package, project)
+    pkgmeta = PKG_TEMPLATE % {"target": project, "pkgname": params.package}
+    put_meta(apiurl, "pkg",
+             (quote_plus(project), quote_plus(params.package)), pkgmeta)
+
+    print "uploading files to %s/%s" % (project, params.package)
+    add_files(apiurl, project, params.package, params.paths)
+
+    # Wait for results
+    if build_ok(apiurl, project, params.timeout):
+        print "done"
+        return 0
+    else:
+        print "build failed"
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+
