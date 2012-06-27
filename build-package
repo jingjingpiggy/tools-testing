@@ -50,12 +50,12 @@ FILE_TEMPLATE = """
 def parse_cmdline(argv):
     """Parse commandline with argparse."""
     parser = argparse.ArgumentParser(description="Submit package to OBS")
-    for arg in ("--build", "--project", "--package"):
+    for arg in ("--sproject", "--tproject", "--package"):
         parser.add_argument(arg)
     parser.add_argument("paths", nargs='+')
     parser.add_argument("--timeout", type=int, default=60)
     options = parser.parse_args(argv)
-    if not options.build or not options.project or not options.package:
+    if not options.sproject or not options.tproject or not options.package:
         parser.error('mandatory argument is not given')
     return options
 
@@ -148,28 +148,29 @@ def main(argv):
     # get parameters from command line and environment
     params = parse_cmdline(argv[1:])
 
-    print "processing package %s : project %s, build %s" % \
-          (params.package, params.project, params.build)
+    sproject, tproject, package, timeout, paths = params.sproject, \
+        params.tproject, params.package, params.timeout, params.paths
+
+    print "processing package %s : source project %s, target project %s" % \
+          (package, sproject, tproject)
 
     # parse osc config
     osc.conf.get_config()
     apiurl = osc.conf.config['apiurl']
 
-    project = "%s-%s-%s" % (params.project, params.package, params.build)
+    print "linking project %s to %s" % (sproject, tproject)
+    link_project(apiurl, sproject, tproject)
 
-    print "linking project %s to %s" % (params.project, project)
-    link_project(apiurl, params.project, project)
-
-    print "creating package %s in linked project %s" % (params.package, project)
-    pkgmeta = PKG_TEMPLATE % {"target": project, "pkgname": params.package}
+    print "creating package %s in linked project %s" % (package, tproject)
+    pkgmeta = PKG_TEMPLATE % {"target": tproject, "pkgname": package}
     put_meta(apiurl, "pkg",
-             (quote_plus(project), quote_plus(params.package)), pkgmeta)
+             (quote_plus(tproject), quote_plus(package)), pkgmeta)
 
-    print "uploading files to %s/%s" % (project, params.package)
-    add_files(apiurl, project, params.package, params.paths)
+    print "uploading files to %s/%s" % (tproject, package)
+    add_files(apiurl, tproject, package, paths)
 
     # Wait for results
-    if build_ok(apiurl, project, params.timeout):
+    if build_ok(apiurl, tproject, timeout):
         print "done"
         return 0
     else:
