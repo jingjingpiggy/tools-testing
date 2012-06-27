@@ -3,11 +3,10 @@
 PROJECT=`basename $(pwd)`
 BUILDHOME=./buildroot/home/build/
 PACKAGE=gbs
-BUILD=$BUILD_ID-$BUILD_NUMBER
 
 # Submit packages to OBS
 make -C packaging/ all
-$WORKSPACE/../../build-package --build $BUILD --project home:tester:Tools --package $PACKAGE packaging/*
+$WORKSPACE/../../build-package --build $BUILD_NUMBER --project home:tester:Tools --package $PACKAGE packaging/*
 
 cd ..
 
@@ -29,13 +28,13 @@ LOG=/home/build/reports/install.log
 if [ -e /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
    echo "deb http://archive.ubuntu.com/ubuntu/ precise universe" >> /etc/apt/sources.list.d/tools.list
    echo "deb http://archive.ubuntu.com/ubuntu/ precise-updates universe" >> /etc/apt/sources.list.d/tools.list
-   echo "deb http://download.otctools.jf.intel.com/Tools/xUbuntu_12.04/ /" >> /etc/apt/sources.list.d/tools.list
-   echo "deb http://download.otctools.jf.intel.com/home:/tester:/$BUILD/xUbuntu_12.04/ /" >> /etc/apt/sources.list.d/tools.list
+   echo "deb http://download.otctools.jf.intel.com/Tools:/Devel/xUbuntu_12.04/ /" >> /etc/apt/sources.list.d/tools.list
+   echo "deb http://download.otctools.jf.intel.com/home:/tester:/Tools-$PACKAGE-$BUILD_NUMBER/xUbuntu_12.04/ /"
    apt-get update | tee \$LOG
    apt-get upgrade | tee -a \$LOG
    apt-get install -y --force-yes $PACKAGE | tee -a \$LOG
 elif [ -e /usr/bin/zypper -a -d /etc/zypper/repos.d ] ; then
-   # TODO: Add repos
+   # TODO: Add repos the same way as it's done for apt above
    zypper ref | tee \$LOG
    zypper install $PACKAGE | tee -a \$LOG
 fi
@@ -81,5 +80,4 @@ sudo rm -rf ./buildroot
 
 echo 'done'
 exit 0
-
 
