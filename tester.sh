@@ -6,7 +6,8 @@ PACKAGE=gbs
 
 # Submit packages to OBS
 make -C packaging/ all
-$WORKSPACE/../../build-package --build $BUILD_NUMBER --project home:tester:Tools --package $PACKAGE packaging/*
+# TODO: Fix this build: $WORKSPACE/../../build-package --sproject Tools:Devel --tproject home:tester:Tools-$BUILD_NUMBER --package $PACKAGE packaging/*
+$WORKSPACE/../../build-package --sproject home:tester:Tools --tproject home:tester:Tools-$PACKAGE-$BUILD_NUMBER --package $PACKAGE packaging/*
 
 cd ..
 
