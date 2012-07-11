@@ -2,12 +2,12 @@
 
 PROJECT=`basename $(pwd)`
 BUILDHOME=./buildroot/home/build/
-PACKAGE=gbs
+PACKAGE=`echo $JOB_NAME|cut -f2- -d-|cut -f1 -d/`
 
 # Submit packages to OBS
 make -C packaging/ all
-# TODO: Fix this build: $WORKSPACE/../../build-package --sproject Tools:Devel --tproject home:tester:Tools-$BUILD_NUMBER --package $PACKAGE packaging/*
-$WORKSPACE/../../build-package --sproject home:tester:Tools --tproject home:tester:Tools-$PACKAGE-$BUILD_NUMBER --package $PACKAGE packaging/*
+# TODO: Fix this build: build-package --sproject Tools:Devel --tproject home:tester:Tools-$BUILD_NUMBER --package $PACKAGE packaging/*
+# build-package --sproject home:tester:Tools --tproject home:tester:Tools-$PACKAGE-$BUILD_NUMBER --package $PACKAGE packaging/*
 
 cd ..
 
@@ -17,27 +17,27 @@ mkdir $WORKSPACE/reports
 
 # Unpack buildroot.tar
 sudo rm -rf ./buildroot
-sudo tar -xf ../buildroot.tar
+sudo tar -xf ~/buildroot.tar
 
 # Prepare installation script
 cat > $BUILDHOME/install_package.sh <<-EOF
-#!/bin/sh
+#!/bin/sh -ex
 
 mkdir -p /home/build/reports/
 LOG=/home/build/reports/install.log
 
 if [ -e /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
-   echo "deb http://archive.ubuntu.com/ubuntu/ precise universe" >> /etc/apt/sources.list.d/tools.list
-   echo "deb http://archive.ubuntu.com/ubuntu/ precise-updates universe" >> /etc/apt/sources.list.d/tools.list
-   echo "deb http://download.otctools.jf.intel.com/Tools:/Devel/xUbuntu_12.04/ /" >> /etc/apt/sources.list.d/tools.list
-   echo "deb http://download.otctools.jf.intel.com/home:/tester:/Tools-$PACKAGE-$BUILD_NUMBER/xUbuntu_12.04/ /"
+   ubuntu_release=\$(grep DISTRIB_RELEASE /etc/lsb-release | cut -f2 -d=)
+   echo "deb http://download.otctools.jf.intel.com/Tools:/Devel/xUbuntu_\$ubuntu_release/ /" > /etc/apt/sources.list.d/tools.list
+   #echo "deb http://download.otctools.jf.intel.com/home:/tester:/Tools-$PACKAGE-$BUILD_NUMBER/xUbuntu_\$ubuntu_release/ /" >>  /etc/apt/sources.list.d/tools.list
    apt-get update | tee \$LOG
    apt-get upgrade | tee -a \$LOG
    apt-get install -y --force-yes $PACKAGE | tee -a \$LOG
-elif [ -e /usr/bin/zypper -a -d /etc/zypper/repos.d ] ; then
-   # TODO: Add repos the same way as it's done for apt above
+elif [ -e /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
+   zypper ar -fG http://download.otctools.jf.intel.com/Tools:/Devel/openSUSE12.1/ Tools
+   #zypper ar -fG http://download.otctools.jf.intel.com/home:/tester:/Tools-$PACKAGE-$BUILD_NUMBER/openSUSE12.1/ Tools-$PACKAGE-$BUILD_NUMBER
    zypper ref | tee \$LOG
-   zypper install $PACKAGE | tee -a \$LOG
+   zypper --non-interactive install $PACKAGE | tee -a \$LOG
 fi
 EOF
 chmod +x $BUILDHOME/install_package.sh
@@ -50,7 +50,7 @@ cp -a ./$PROJECT $BUILDHOME
 
 # Prepare test script
 cat > $BUILDHOME/tests.sh <<-EOF
-#!/bin/sh
+#!/bin/sh -ex
 
 cd /home/build/$PROJECT
 
@@ -81,4 +81,3 @@ sudo rm -rf ./buildroot
 
 echo 'done'
 exit 0
-
