@@ -1,0 +1,25 @@
+#!/bin/sh -efu
+
+src="$1"
+reports_dir="$2"
+log="$3"
+
+cd $src
+
+# Run pylint
+mkdir -p ~/.pylint.d/
+for f in $(find . -name \*.py); do
+    pylint --output-format=parseable --reports=y $f >> $log
+done || :
+
+# Run nosetests with coverage support
+nosetests -v --with-coverage --with-xunit
+
+# Run coverage
+coverage=$(which coverage || which python-coverage)
+$coverage xml
+
+# Move reports
+mv nosetests.xml $reports_dir
+mv coverage.xml $reports_dir
+
