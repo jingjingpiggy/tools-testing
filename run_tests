@@ -2,14 +2,14 @@
 
 src="$1"
 reports_dir="$2"
-log="$3"
 
 cd $src
 
 # Run pylint
 mkdir -p ~/.pylint.d/
+rm -f pylint.log
 for f in $(find . -name \*.py); do
-    pylint --output-format=parseable --reports=y $f >> $log
+    pylint --output-format=parseable --reports=y $f >> pylint.log
 done || :
 
 # Run nosetests with coverage support
@@ -20,6 +20,6 @@ coverage=$(which coverage || which python-coverage)
 $coverage xml
 
 # Move reports
+mv pylint.log $reports_dir
 mv nosetests.xml $reports_dir
 mv coverage.xml $reports_dir
-
