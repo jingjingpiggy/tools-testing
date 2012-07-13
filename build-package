@@ -50,13 +50,17 @@ FILE_TEMPLATE = """
 def parse_cmdline(argv):
     """Parse commandline with argparse."""
     parser = argparse.ArgumentParser(description="Submit package to OBS")
-    for arg in ("--sproject", "--tproject", "--package"):
-        parser.add_argument(arg)
-    parser.add_argument("paths", nargs='+')
+    parser.add_argument("--sproject")
+    parser.add_argument("--tproject", required=True)
+    parser.add_argument("--package")
+    parser.add_argument("paths", nargs='*')
     parser.add_argument("--timeout", type=int, default=60)
+    parser.add_argument("--wait", action='store_true')
     options = parser.parse_args(argv)
-    if not options.sproject or not options.tproject or not options.package:
-        parser.error('mandatory argument is not given')
+    if not options.wait and (not options.sproject or not options.paths \
+                             or not options.package):
+        parser.error("either --wait or --sproject, --package and paths "
+                     "have to be specified")
     return options
 
 def link_project(apiurl, src, target):
@@ -151,25 +155,27 @@ def main(argv):
     sproject, tproject, package, timeout, paths = params.sproject, \
         params.tproject, params.package, params.timeout, params.paths
 
-    print "processing package %s : source project %s, target project %s" % \
-          (package, sproject, tproject)
-
     # parse osc config
     osc.conf.get_config()
     apiurl = osc.conf.config['apiurl']
 
-    print "linking project %s to %s" % (sproject, tproject)
-    link_project(apiurl, sproject, tproject)
+    if not params.wait:
+        print "package %s : source project %s, target project %s" % \
+              (package, sproject, tproject)
 
-    print "creating package %s in linked project %s" % (package, tproject)
-    pkgmeta = PKG_TEMPLATE % {"target": tproject, "pkgname": package}
-    put_meta(apiurl, "pkg",
-             (quote_plus(tproject), quote_plus(package)), pkgmeta)
+        print "linking project %s to %s" % (sproject, tproject)
+        link_project(apiurl, sproject, tproject)
 
-    print "uploading files to %s/%s" % (tproject, package)
-    add_files(apiurl, tproject, package, paths)
+        print "creating package %s in linked project %s" % (package, tproject)
+        pkgmeta = PKG_TEMPLATE % {"target": tproject, "pkgname": package}
+        put_meta(apiurl, "pkg",
+                 (quote_plus(tproject), quote_plus(package)), pkgmeta)
 
-    # Wait for results
+        print "uploading files to %s/%s" % (tproject, package)
+        add_files(apiurl, tproject, package, paths)
+
+
+    print "project %s: waiting for the build results" % tproject
     if build_ok(apiurl, tproject, timeout):
         print "done"
         return 0
@@ -179,4 +185,3 @@ def main(argv):
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
-
