@@ -1,20 +1,20 @@
-#!/bin/sh -eu
+#!/bin/sh -xeu
 
-repo="$1"
-package="$2"
+project="$1"
+repo="$2"
+packages="$3"
 
 if [ -e /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
-   ubuntu_release=$(grep DISTRIB_RELEASE /etc/lsb-release | cut -f2 -d=)
    srclist="/etc/apt/sources.list.d/Tools.list"
-   echo "deb http://download.otctools.jf.intel.com/home:/tester:/Tools/xUbuntu_$ubuntu_release/ /" > $srclist
-   echo "deb http://download.otctools.jf.intel.com/home:/tester:/$repo/xUbuntu_$ubuntu_release/ /" >>  $srclist
+   echo "deb http://download.otctools.jf.intel.com/home:/tester:/Tools/$repo/ /" > $srclist
+   echo "deb http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ /" >>  $srclist
    apt-get update
    apt-get upgrade -y
-   apt-get install -y --force-yes $package
+   apt-get install -y --force-yes $packages
 elif [ -e /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
    zypper ar -fG http://download.otctools.jf.intel.com/home%3A/tester%3A/Tools/openSUSE12.1/ Tools
-   zypper ar -fG http://download.otctools.jf.intel.com/home%3A/tester%3A/$repo/openSUSE12.1/ $repo
+   zypper ar -fG http://download.otctools.jf.intel.com/home%3A/tester%3A/$project/ $repo
    sed -ie 's/%25/%/g' /etc/zypp/repos.d/*.repo
    zypper --non-interactive ref
-   zypper --non-interactive install $package
+   zypper --non-interactive install $packages
 fi
