@@ -139,7 +139,7 @@ def build_ok(apiurl, project, timeout):
                             if status not in ('excluded', 'succeeded')]
             package = splitted[0]
             if [st for st in statuses if st not in ('building', 'scheduled',
-                                                    'dispatching')]:
+                                                    'dispatching', 'finished')]:
                 print 'package %s failed to build: %s' % (package, splitted[1:])
                 return False
             print 'waiting for %s: %s' % (package, splitted[1:])
