@@ -22,6 +22,8 @@ if [ -d tests ] ; then
 fi
 
 # Move reports
-mv pylint.log $reports_dir
-mv nosetests.xml $reports_dir
-mv coverage.xml $reports_dir
+for fn in pylint.log nosetests.xml coverage.xml ; do
+    [ -f "$fn" ] && mv $fn $reports_dir
+done
+
+echo 'Done'
