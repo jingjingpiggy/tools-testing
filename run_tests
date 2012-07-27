@@ -12,12 +12,14 @@ for f in $(find . -name \*.py); do
     pylint --output-format=parseable --reports=y $f >> pylint.log
 done || :
 
-# Run nosetests with coverage support
-nosetests -v --with-coverage --with-xunit
+if [ -d tests ] ; then
+    # Run nosetests with coverage support
+    nosetests -v --with-coverage --with-xunit
 
-# Run coverage
-coverage=$(which coverage || which python-coverage)
-$coverage xml
+    # Run coverage
+    coverage=$(which coverage || which python-coverage)
+    $coverage xml
+fi
 
 # Move reports
 mv pylint.log $reports_dir
