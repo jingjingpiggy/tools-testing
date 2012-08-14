@@ -16,6 +16,7 @@ import tempfile
 import argparse
 import hashlib
 import time
+import urllib2
 
 from collections import defaultdict
 from urllib import quote_plus, pathname2url
@@ -90,7 +91,18 @@ def put_meta(apiurl, metatype, path_args, data):
                                        suffix=".xml", text=True)
     os.write(fileh, data)
     os.close(fileh)
-    osc.core.http_PUT(url, file=filename)
+
+    # Let's make 3 attempts to send the query, because sometimes
+    # it failes with urllib2.HTTPError: HTTP Error 500: Internal Server Error
+    for _try in (1, 2, 3):
+        try:
+            osc.core.http_PUT(url, file=filename)
+        except urllib2.HTTPError, err:
+            if err.code != 500:
+                raise
+        else:
+            break
+
     os.unlink(filename)
 
 def hexdigest(fhandle, block_size=4096):
@@ -130,10 +142,19 @@ def build_ok(apiurl, project, timeout):
     statuses = ['bla']
     while statuses:
         time.sleep(timeout)
-        for pkginfo in osc.core.get_prj_results(apiurl,
-                                                project,
-                                                hide_legend=True,
-                                                csv=True)[1:]:
+
+       # Let's make 3 attempts to get results, because sometimes it failes
+       # with cElementTree.ParseError: no element found: line 1, column 0
+        for _try in (1, 2, 3):
+            try:
+                results = osc.core.get_prj_results(apiurl, project,
+                                                   hide_legend=True, csv=True)
+            except osc.core.ET.ParseError:
+                continue
+            else:
+                break
+
+        for pkginfo in results[1:]:
             splitted = pkginfo.split(';')
             statuses = [status for status in splitted[1:] \
                             if status not in ('excluded', 'succeeded')]
