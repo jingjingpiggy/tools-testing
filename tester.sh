@@ -4,7 +4,8 @@ PROJECT=`basename "$(pwd)"`
 BUILDROOT="../buildroot-$BUILD_NUMBER"
 BUILDHOME="$BUILDROOT/home/build"
 PACKAGE=`echo $GERRIT_PROJECT|cut -f1 -d-`
-OBS_PROJECT="home:tester:Tools-$PACKAGE-$BUILD_NUMBER"
+OBS_PROJECT_NAME="Tools-$PACKAGE-$BUILD_NUMBER"
+OBS_PROJECT="home:tester:$OBS_PROJECT_NAME"
 
 # Clean buildroot on exit
 trap "sudo rm -rf $BUILDROOT; exit" INT TERM EXIT
@@ -40,7 +41,7 @@ osc ls -b "$OBS_PROJECT" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.li
 PACKAGES=`sed -n 's/^\(.*\)\.\(deb\|rpm\)$/\1/p' "$WORKSPACE/packages.list"|tr '\n' ' '`
 
 # Install packages
-sudo chroot "$BUILDROOT" /usr/bin/install_package "Tools-$PACKAGE-$BUILD_NUMBER" "$OBS_REPO" "$PACKAGES"
+sudo chroot "$BUILDROOT" /usr/bin/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES"
 
 # copy source tree to buildroot
 cp -a "../$PROJECT" "$BUILDHOME/"
