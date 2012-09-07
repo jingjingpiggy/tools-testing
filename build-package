@@ -157,10 +157,12 @@ def build_ok(apiurl, project, timeout):
         for pkginfo in results[1:]:
             splitted = pkginfo.split(';')
             statuses = [status for status in splitted[1:] \
-                            if status not in ('excluded', 'succeeded')]
+                            if status not in \
+                                ('excluded', 'succeeded', 'disabled')]
             package = splitted[0]
             if [st for st in statuses if st not in ('building', 'scheduled',
-                                                    'dispatching', 'finished')]:
+                                                    'dispatching', 'finished',
+                                                    'blocked')]:
                 print 'package %s failed to build: %s' % (package, splitted[1:])
                 return False
             print 'waiting for %s: %s' % (package, splitted[1:])
