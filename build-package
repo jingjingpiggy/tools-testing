@@ -140,7 +140,7 @@ def add_files(apiurl, project, package, files):
 def build_ok(apiurl, project, timeout):
     """Waits until build is successfully finished or failed."""
     statuses = ['bla']
-    while statuses:
+    while True:
         time.sleep(timeout)
 
        # Let's make 3 attempts to get results, because sometimes it failes
@@ -154,11 +154,12 @@ def build_ok(apiurl, project, timeout):
             else:
                 break
 
+        statuses = []
         for pkginfo in results[1:]:
             splitted = pkginfo.split(';')
-            statuses = [status for status in splitted[1:] \
+            statuses.extend([status for status in splitted[1:] \
                             if status not in \
-                                ('excluded', 'succeeded', 'disabled')]
+                                ('excluded', 'succeeded', 'disabled')])
             package = splitted[0]
             if [st for st in statuses if st not in ('building', 'scheduled',
                                                     'dispatching', 'finished',
@@ -166,7 +167,9 @@ def build_ok(apiurl, project, timeout):
                 print 'package %s failed to build: %s' % (package, splitted[1:])
                 return False
             print 'waiting for %s: %s' % (package, splitted[1:])
-    return True
+
+        if not statuses:
+            return True
 
 
 def main(argv):
