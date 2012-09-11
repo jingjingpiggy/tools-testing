@@ -70,7 +70,7 @@ sudo chroot "$BUILDROOT" /usr/bin/install_package "$OBS_PROJECT_NAME" "$OBS_REPO
 cp -a "../$PROJECT" "$BUILDHOME/"
 
 # Run tests
-sudo chroot "$BUILDROOT" /usr/bin/run_tests "/home/build/$PROJECT" /home/build/reports/
+sudo chroot "$BUILDROOT" su - build /usr/bin/run_tests "/home/build/$PROJECT" /home/build/reports/
 
 # Copy test results
 [ "$(ls -A $BUILDHOME/reports/)" ] && cp "$BUILDHOME/reports/"* "$WORKSPACE/reports/"
