@@ -3,21 +3,22 @@
 project="$1"
 repo="$2"
 packages="$3"
+sproject="$4"
+
+[ -z "$sproject" ] && sproject=home:/tester:/Tools
 
 if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
 # Ubuntu
    srclist="/etc/apt/sources.list.d/Tools.list"
    echo "deb http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ /" >  $srclist
-   echo "deb http://download.otctools.jf.intel.com/home:/tester:/Tools/$repo/ /" >> $srclist
+   echo "deb http://download.otctools.jf.intel.com/$sproject/$repo/ /" >> $srclist
    apt-get update
    apt-get upgrade -y
    apt-get install -y --force-yes $packages
 elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
 # OpenSuse
-   zypper ar -fG http://download.otctools.jf.intel.com/home%3A/tester%3A/$project/$repo/ $project
-   zypper ar -fG http://download.otctools.jf.intel.com/home%3A/tester%3A/Tools/$repo/ tools
-   sed -ie 's/%25/%/g' /etc/zypp/repos.d/tools.repo
-   sed -ie 's/%25/%/g' /etc/zypp/repos.d/$project.repo
+   zypper ar -fG http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ $project
+   zypper ar -fG http://download.otctools.jf.intel.com/$sproject/$repo/ tools
    zypper --non-interactive ref
    zypper --non-interactive install $packages
 elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d /etc/yum.repos.d ] ; then
@@ -32,7 +33,7 @@ proxy=_none_
 gpgcheck=0
 [tools]
 name=tools
-baseurl=http://download.otctools.jf.intel.com/home:/tester:/Tools/$repo/
+baseurl=http://download.otctools.jf.intel.com/$sproject/$repo/
 enabled=1
 proxy=_none_
 gpgcheck=0
