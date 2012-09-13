@@ -64,7 +64,8 @@ if [ -z "$PACKAGES" ]; then
 fi
 
 # Install packages
-sudo chroot "$BUILDROOT" /usr/bin/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES"
+SPROJ=`echo "$SOURCE_PROJECT" | sed 's/:/:\//g'`
+sudo chroot "$BUILDROOT" /usr/bin/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ"
 
 # copy source tree to buildroot
 cp -a "../$PROJECT" "$BUILDHOME/"
