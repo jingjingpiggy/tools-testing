@@ -5,8 +5,6 @@ repo="$2"
 packages="$3"
 sproject="$4"
 
-[ -z "$sproject" ] && sproject=home:/tester:/Tools
-
 if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
 # Ubuntu
    srclist="/etc/apt/sources.list.d/Tools.list"
