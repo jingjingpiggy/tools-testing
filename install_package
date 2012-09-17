@@ -4,6 +4,7 @@ project="$1"
 repo="$2"
 packages="$3"
 sproject="$4"
+testreq_packages="$5"
 
 if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
 # Ubuntu
@@ -12,12 +13,22 @@ if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
    echo "deb http://download.otctools.jf.intel.com/$sproject/$repo/ /" >> $srclist
    apt-get update
    apt-get upgrade -y
+   if [ -n "$testreq_packages" ]; then
+     echo "======= Installing TEST REQ packages ========"
+     apt-get install -y --force-yes $testreq_packages
+   fi
+   echo "======= Installing UNDER TEST packages ========"
    apt-get install -y --force-yes $packages
 elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
 # OpenSuse
    zypper ar -fG http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ $project
    zypper ar -fG http://download.otctools.jf.intel.com/$sproject/$repo/ tools
    zypper --non-interactive ref
+   if [ -n "$testreq_packages" ]; then
+     echo "======= Installing TEST REQ packages ========"
+     zypper --non-interactive install $testreq_packages
+   fi
+   echo "======= Installing UNDER TEST packages ========"
    zypper --non-interactive install $packages
 elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d /etc/yum.repos.d ] ; then
 # Fedora
@@ -36,5 +47,10 @@ enabled=1
 proxy=_none_
 gpgcheck=0
 EOF
+   if [ -n "$testreq_packages" ]; then
+     echo "======= Installing TEST REQ packages ========"
+     yum -y install $testreq_packages
+   fi
+   echo "======= Installing UNDER TEST packages ========"
    yum -y install $packages
 fi

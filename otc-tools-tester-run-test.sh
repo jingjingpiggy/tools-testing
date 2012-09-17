@@ -65,7 +65,13 @@ fi
 
 # Install packages
 SPROJ=`echo "$SOURCE_PROJECT" | sed 's/:/:\//g'`
-sudo chroot "$BUILDROOT" /usr/bin/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ"
+if [ -f packaging/.test-requires -a -x /usr/bin/otc-tools-tester-system-what-release.sh ]; then
+  OSREL=`/usr/bin/otc-tools-tester-system-what-release.sh`
+  TESTREQ_PACKAGES=`grep $OSREL packaging/.test-requires | cut -d':' -f 2`
+else
+  TESTREQ_PACKAGES=""
+fi
+sudo chroot "$BUILDROOT" /usr/bin/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "$TESTREQ_PACKAGES"
 
 # copy source tree to buildroot
 cp -a "../$PROJECT" "$BUILDHOME/"
