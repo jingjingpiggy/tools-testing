@@ -8,9 +8,15 @@ cd $src
 # Run pylint
 mkdir -p ~/.pylint.d/
 rm -f pylint.log
-for f in $(find . -name \*.py); do
-    pylint --output-format=parseable --reports=y $f >> pylint.log
+cdir=`pwd`
+for path in `find $cdir -name \*.py`; do
+    fdir=`dirname $path`
+    fname=`basename $path`
+    [ "$fdir" = "$cdir" ] && rname=$fname || rname=`echo $fdir|sed "s|$cdir/\(.*\)|\1/$fname|"`
+    cd $fdir
+    pylint --output-format=parseable --reports=y $fname |sed "s|[^:]\+:\([0-9]\+\): \(.*\)|$rname:\1: \2|g" >> $cdir/pylint.log
 done || :
+cd $cdir
 
 if [ -d tests ] ; then
     # Run nosetests with coverage support
