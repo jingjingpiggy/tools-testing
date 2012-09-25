@@ -14,7 +14,7 @@ for path in `find $cdir -name \*.py`; do
     fname=`basename $path`
     [ "$fdir" = "$cdir" ] && rname=$fname || rname=`echo $fdir|sed "s|$cdir/\(.*\)|\1/$fname|"`
     cd $fdir
-    pylint --output-format=parseable --reports=y $fname |sed "s|[^:]\+:\([0-9]\+\): \(.*\)|$rname:\1: \2|g" >> $cdir/pylint.log
+    pylint --output-format=parseable --reports=n $fname |sed "s|[^:]\+:\([0-9]\+\): \(.*\)|$rname:\1: \2|g" >> $cdir/pylint.log
 done || :
 cd $cdir
 
