@@ -12,7 +12,7 @@ if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
    echo "deb http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ /" >  $srclist
    echo "deb http://download.otctools.jf.intel.com/$sproject/$repo/ /" >> $srclist
    apt-get update
-   apt-get upgrade -y
+   apt-get upgrade -y --force-yes
    if [ -n "$testreq_packages" ]; then
      echo "======= Installing TEST REQ packages ========"
      apt-get install -y --force-yes $testreq_packages
