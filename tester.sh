@@ -37,7 +37,7 @@ sudo tar -xf ~/buildroot.tar
 sudo mv buildroot "$BUILDROOT"
 
 # Get list of built binary packages
-osc ls -b "$OBS_PROJECT" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.list"
+safeosc ls -b "$OBS_PROJECT" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.list"
 PACKAGES=`sed -n 's/^\(.*\)\.\(deb\|rpm\)$/\1/p' "$WORKSPACE/packages.list"|tr '\n' ' '`
 
 # Install packages

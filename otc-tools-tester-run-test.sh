@@ -56,7 +56,7 @@ rm -rf "$WORKSPACE/reports"
 mkdir "$WORKSPACE/reports"
 
 # Get list of built binary packages
-osc ls -b "$OBS_PROJECT" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.list"
+safeosc ls -b "$OBS_PROJECT" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.list"
 PACKAGES=`sed -n 's/^\(.*\)\.\(deb\|rpm\)$/\1/p' "$WORKSPACE/packages.list"|tr '\n' ' '`
 if [ -z "$PACKAGES" ]; then
   echo "Error: No packages were built by OBS"

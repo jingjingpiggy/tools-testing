@@ -1,0 +1,47 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# vim: ts=4 et sw=4 sts=4 ai sta:
+
+"""
+This script is a modification of /usr/bin/osc. original code is wrapped into
+try/except to call exceptions, missed by osc.
+
+If exception is caused by known osc bug this script tries to call osc several
+times as there is a chanse that next call will succeed.
+
+Author: Ed Bartosh <eduard.bartosh@intel.com>
+Licence: GPLv2
+"""
+
+# this wrapper exists so it can be put into /usr/bin, but still allows the
+# python module to be called within the source directory during development
+
+import locale
+import sys
+import time
+
+from osc import commandline, babysitter
+from osc.core import ET
+
+# this is a hack to make osc work as expected with utf-8 characters,
+# no matter how site.py is set...
+reload(sys)
+loc = locale.getdefaultlocale()[1]
+if not loc:
+    loc = sys.getdefaultencoding()
+sys.setdefaultencoding(loc)
+del sys.setdefaultencoding
+
+osccli = commandline.Osc()
+
+# Try 3 times
+for _try in (1, 2, 3):
+    try:
+        sys.exit(babysitter.run(osccli))
+    # repeat if osc fails with
+    # cElementTree.ParseError: no element found: line 1, column 0
+    except ET.ParseError:
+        if _try == 3:
+            raise
+        time.sleep(1)
+
