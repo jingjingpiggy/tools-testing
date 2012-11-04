@@ -37,13 +37,6 @@ REPO_TEMPLATE = """
     <path repository="%(name)s" project="%(src)s"/>
 """
 
-PKG_TEMPLATE = """
-<package project="%(target)s" name="%(pkgname)s">
-  <title/>
-  <description/>
-</package>
-"""
-
 FILE_TEMPLATE = """
 <entry md5="%(md5)s" name="%(fname)s"/>
 """
@@ -84,6 +77,13 @@ def link_project(apiurl, src, target):
 
     put_meta(apiurl, "prj", quote_plus(target), targetmeta)
 
+def branch_package(apiurl, src_project, src_package,
+                   target_project, target_package=None):
+    """Branch package from source to target project."""
+    return osc.core.branch_pkg(apiurl, src_project, src_package,
+                               target_project=target_project,
+                               target_package=target_package)
+
 def put_meta(apiurl, metatype, path_args, data):
     """Wrapper to put metadata to OBS."""
     url = osc.core.make_meta_url(metatype, path_args, apiurl, False)
@@ -118,7 +118,8 @@ def hexdigest(fhandle, block_size=4096):
 def add_files(apiurl, project, package, files):
     """Commits files to OBS."""
     query = {'cmd'    : 'commitfilelist',
-             'user'   : osc.conf.get_apiurl_usr(apiurl)}
+             'user'   : osc.conf.get_apiurl_usr(apiurl),
+             'keeplink': 1}
     url = osc.core.makeurl(apiurl, ['source', project, package], query=query)
 
     xml = "<directory>"
@@ -192,10 +193,10 @@ def main(argv):
         print "linking project %s to %s" % (sproject, tproject)
         link_project(apiurl, sproject, tproject)
 
-        print "creating package %s in linked project %s" % (package, tproject)
-        pkgmeta = PKG_TEMPLATE % {"target": tproject, "pkgname": package}
-        put_meta(apiurl, "pkg",
-                 (quote_plus(tproject), quote_plus(package)), pkgmeta)
+        print "branch package %s/%s to %s/%s" % (sproject, package,
+                                                 tproject, package)
+
+        branch_package(apiurl, sproject, package, tproject)
 
         print "uploading files to %s/%s" % (tproject, package)
         add_files(apiurl, tproject, package, paths)
