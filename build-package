@@ -20,6 +20,8 @@ import urllib2
 
 from collections import defaultdict
 from urllib import quote_plus, pathname2url
+import M2Crypto
+from M2Crypto.SSL.Checker import SSLVerificationError
 
 import osc.conf
 import osc.core
@@ -41,6 +43,10 @@ FILE_TEMPLATE = """
 <entry md5="%(md5)s" name="%(fname)s"/>
 """
 
+class BuildError(Exception):
+    """Custom exception for this script."""
+    pass
+
 def parse_cmdline(argv):
     """Parse commandline with argparse."""
     parser = argparse.ArgumentParser(description="Submit package to OBS")
@@ -48,7 +54,7 @@ def parse_cmdline(argv):
     parser.add_argument("--tproject", required=True)
     parser.add_argument("--package")
     parser.add_argument("paths", nargs='*')
-    parser.add_argument("--timeout", type=int, default=60)
+    parser.add_argument("--timeout", type=int, default=15)
     parser.add_argument("--wait", action='store_true')
     options = parser.parse_args(argv)
     if not options.wait and (not options.sproject or not options.paths \
@@ -138,22 +144,59 @@ def add_files(apiurl, project, package, files):
         osc.core.http_PUT(put_url, file=fpath)
     osc.core.http_POST(url, data=xml)
 
-def build_ok(apiurl, project, timeout):
-    """Waits until build is successfully finished or failed."""
-    statuses = ['bla']
-    while True:
+def exists(apiurl, prj, pkg=''):
+    """Check if project or/and package exists."""
+
+    metatype = 'prj'
+    path_args = [quote_plus(prj)]
+    if pkg:
+        metatype = 'pkg'
+        path_args.append(quote_plus(pkg))
+
+    err = None
+    try:
+        osc.core.meta_exists(metatype = metatype, path_args = tuple(path_args),
+                             create_new = False, apiurl = apiurl)
+    except urllib2.HTTPError, err:
+        if err.code == 404:
+            return False
+    except (urllib2.URLError, M2Crypto.m2urllib2.URLError, \
+                              M2Crypto.SSL.SSLError), err:
+        pass
+    except SSLVerificationError:
+        raise BuildError("SSL verification error.")
+    if err:
+        raise BuildError("can't check if %s/%s exists: %s" % (prj, pkg, err))
+
+    return True
+
+
+def build_ok(apiurl, project, package, timeout):
+    """Wait until build is successfully finished or failed."""
+    # waiting for project and package to appear in OBS
+    while not exists(apiurl, project, package):
         time.sleep(timeout)
 
-       # Let's make 3 attempts to get results, because sometimes it failes
-       # with cElementTree.ParseError: no element found: line 1, column 0
-        for _try in (1, 2, 3):
-            try:
-                results = osc.core.get_prj_results(apiurl, project,
-                                                   hide_legend=True, csv=True)
-            except osc.core.ET.ParseError:
-                continue
-            else:
+    while True:
+        # waiting to build results to appear
+        while True:
+            # Let's make 3 attempts to get results, because sometimes it failes
+            # with cElementTree.ParseError: no element found: line 1, column 0
+            for _try in (1, 2, 3):
+                try:
+                    results = osc.core.get_prj_results(apiurl, project,
+                                            hide_legend=True, csv=True)
+                except osc.core.ET.ParseError:
+                    if _try == 3:
+                        print "error getting build results for %s" % project
+                        return False
+                    continue
                 break
+
+            if results and len(results) > 1:
+                break
+
+            time.sleep(timeout)
 
         statuses = []
         for pkginfo in results[1:]:
@@ -164,13 +207,15 @@ def build_ok(apiurl, project, timeout):
             package = splitted[0]
             if [st for st in statuses if st not in ('building', 'scheduled',
                                                     'dispatching', 'finished',
-                                                    'blocked')]:
+                                                    'blocked', 'broken')]:
                 print 'package %s failed to build: %s' % (package, splitted[1:])
                 return False
             print 'waiting for %s: %s' % (package, splitted[1:])
 
         if not statuses:
             return True
+
+        time.sleep(timeout)
 
 
 def main(argv):
@@ -203,7 +248,7 @@ def main(argv):
 
 
     print "project %s: waiting for the build results" % tproject
-    if build_ok(apiurl, tproject, timeout):
+    if build_ok(apiurl, tproject, package, timeout):
         print "done"
         return 0
     else:
@@ -211,4 +256,7 @@ def main(argv):
         return 1
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    try:
+        sys.exit(main(sys.argv))
+    except BuildError, error:
+        print "build failed: %s" % str(error)
