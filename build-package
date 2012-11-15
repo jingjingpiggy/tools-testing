@@ -153,22 +153,28 @@ def exists(apiurl, prj, pkg=''):
         metatype = 'pkg'
         path_args.append(quote_plus(pkg))
 
-    err = None
-    try:
-        osc.core.meta_exists(metatype = metatype, path_args = tuple(path_args),
-                             create_new = False, apiurl = apiurl)
-    except urllib2.HTTPError, err:
-        if err.code == 404:
-            return False
-    except (urllib2.URLError, M2Crypto.m2urllib2.URLError, \
-                              M2Crypto.SSL.SSLError), err:
-        pass
-    except SSLVerificationError:
-        raise BuildError("SSL verification error.")
-    if err:
-        raise BuildError("can't check if %s/%s exists: %s" % (prj, pkg, err))
+    for _try in (1, 2, 3):
+        err = None
+        try:
+            osc.core.meta_exists(metatype = metatype, path_args = tuple(path_args),
+                                 create_new = False, apiurl = apiurl)
+        except urllib2.HTTPError, err:
+            if err.code == 404:
+                return False
+        except (urllib2.URLError, M2Crypto.m2urllib2.URLError, \
+                                  M2Crypto.SSL.SSLError), err:
+            pass
+        except SSLVerificationError:
+            raise BuildError("SSL verification error.")
 
-    return True
+        if err:
+            if _try == 3:
+                raise BuildError("can't check if %s/%s exists: %s" % (prj, pkg, err))
+            else:
+                time.sleep(3)
+                continue
+
+        return True
 
 
 def build_ok(apiurl, project, package, timeout):
