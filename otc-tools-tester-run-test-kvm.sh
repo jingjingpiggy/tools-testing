@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eu
+set -xeu
 
 Cleanup () {
  mountpoint -q $BUILDHOME && sudo umount $BUILDHOME
@@ -78,6 +78,7 @@ fi
 # create run script that will be auto-started in Virtual machine
 cat > $BUILDHOME/build/run << EOF
 #!/bin/sh
+set -xe
 TESTREQ_PACKAGES=""
 EOF
 
