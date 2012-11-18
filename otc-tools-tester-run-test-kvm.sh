@@ -109,8 +109,5 @@ sudo umount $BUILDHOME
 # Mount 2nd disk of VM again to copy the test result and logs
 sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
 [ "$(ls -A $BUILDHOME/build/reports/)" ] && cp "$BUILDHOME/build/reports/"* "$WORKSPACE/reports/"
-[ "$(ls -A $BUILDHOME/build/output)" ] && cp "$BUILDHOME/build/output" $KVM_ROOT/
-
-# make test output visible in Jenkins job output
-cat $KVM_ROOT/output
-echo 'done'
+# make test run output visible in Jenkins job output
+[ "$(ls -A $BUILDHOME/build/output)" ] && cat "$BUILDHOME/build/output"
