@@ -103,7 +103,7 @@ sudo umount $BUILDHOME
 (
  flock 9 || exit 1
  # under lock: Run tests by starting KVM, executes /home/build/run and shuts down.
- sudo qemu-kvm -name $OBS_REPO -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :0
+ sudo qemu-kvm -name $OBS_REPO -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -display none
 ) 9>/tmp/kvm-lockfile
 
 # Mount 2nd disk of VM again to copy the test result and logs
