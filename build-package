@@ -147,17 +147,15 @@ def add_files(apiurl, project, package, files):
 def exists(apiurl, prj, pkg=''):
     """Check if project or/and package exists."""
 
-    metatype = 'prj'
     path_args = [quote_plus(prj)]
-    if pkg:
-        metatype = 'pkg'
-        path_args.append(quote_plus(pkg))
 
     for _try in (1, 2, 3):
         err = None
         try:
-            osc.core.meta_exists(metatype = metatype, path_args = tuple(path_args),
-                                 create_new = False, apiurl = apiurl)
+            osc.core.meta_exists(metatype='prj', path_args=tuple(path_args),
+                                 create_new=False, apiurl=apiurl)
+            if pkg:
+                return pkg in osc.core.meta_get_packagelist(apiurl, prj)
         except urllib2.HTTPError, err:
             if err.code == 404:
                 return False
@@ -237,17 +235,22 @@ def main(argv):
     osc.conf.get_config()
     apiurl = osc.conf.config['apiurl']
 
-    if not params.wait:
+    if params.wait:
+        # for restarted build project and package already exist
+        # wait for sources reupload
+        time.sleep(2*timeout)
+    else:
         print "package %s : source project %s, target project %s" % \
               (package, sproject, tproject)
 
-        print "linking project %s to %s" % (sproject, tproject)
-        link_project(apiurl, sproject, tproject)
+        if not exists(apiurl, tproject):
+            print "linking project %s to %s" % (sproject, tproject)
+            link_project(apiurl, sproject, tproject)
 
-        print "branch package %s/%s to %s/%s" % (sproject, package,
-                                                 tproject, package)
-
-        branch_package(apiurl, sproject, package, tproject)
+        if not exists(apiurl, tproject, package):
+            print "branch package %s/%s to %s/%s" % (sproject, package,
+                                                     tproject, package)
+            branch_package(apiurl, sproject, package, tproject)
 
         print "uploading files to %s/%s" % (tproject, package)
         add_files(apiurl, tproject, package, paths)
