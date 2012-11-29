@@ -1,13 +1,14 @@
 #!/bin/sh
 set -xeu
+UMOUNT="sudo umount -l"
 
 Cleanup () {
- mountpoint -q $BUILDHOME && sudo umount $BUILDHOME
- mountpoint -q $KVM_ROOT && sudo umount $KVM_ROOT
+ mountpoint -q $BUILDHOME && $UMOUNT $BUILDHOME
+ mountpoint -q $KVM_ROOT && $UMOUNT $KVM_ROOT
  rm -fr $SRC_TMPCOPY
 }
 
-trap Cleanup INT TERM EXIT
+trap Cleanup INT TERM EXIT ABRT
 
 if [ $# -lt 3 ]; then
   echo "at least 3 args needed: PACKAGE BUILDROOT SOURCE_PROJECT [NAME_SUFFIX]"
@@ -98,7 +99,7 @@ EOF
 chmod a+x $BUILDHOME/build/run
 # mv source tree from temp.copy to VM /home/build
 mv "$SRC_TMPCOPY/$PROJECT" $BUILDHOME/build/
-sudo umount $BUILDHOME
+$UMOUNT $BUILDHOME
 
 (
  flock 9 || exit 1
