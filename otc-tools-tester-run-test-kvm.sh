@@ -111,3 +111,13 @@ sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
 [ "$(ls -A $BUILDHOME/build/reports/)" ] && cp "$BUILDHOME/build/reports/"* "$WORKSPACE/reports/"
 # make test run output visible in Jenkins job output
 [ "$(ls -A $BUILDHOME/build/output)" ] && cat "$BUILDHOME/build/output"
+
+# examine KVM session return value, written on last line, to form exit value
+RETVAL=`tail -1 "$BUILDHOME/build/output"`
+if [ $RETVAL -eq 0 ]; then
+  echo RUN SUCCESS
+  exit 0
+else
+  echo RUN FAIL
+  exit 1
+fi
