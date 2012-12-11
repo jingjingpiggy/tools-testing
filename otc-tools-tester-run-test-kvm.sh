@@ -42,6 +42,25 @@ BUILDHOME="$KVM_ROOT/mnt"
 SRC_TMPCOPY=`mktemp -d`
 cp -a "../$PROJECT" $SRC_TMPCOPY
 
+
+# Determine type of the event
+EVENT='submit'
+if test "${GERRIT_BRANCH+defined}" ; then
+    git fetch --all
+    BRANCH_SHA1=`git rev-parse origin/$GERRIT_BRANCH`
+    # if change is merged it's sha1 is the same as sha1 of the branch
+    if [ "$BRANCH_SHA1" == "$GIT_COMMIT" ] ; then
+        if [ "$GERRIT_BRANCH" == "devel" ] ; then
+            EVENT='merge'
+            # When change is merged sources should be put into SOURCE_PROJECT
+            # usually it's *:Devel
+            OBS_PROJECT=$SOURCE_PROJECT
+            SOURCE_PROJECT='DUMMY'
+            RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
+        fi
+    fi
+fi
+
 # Submit packages to OBS
 if test "${CAN_SUBMIT_TO_OBS+defined}" ; then
 
@@ -123,6 +142,14 @@ sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
 # examine KVM session return value, written on last line, to form exit value
 RETVAL=`tail -1 "$BUILDHOME/build/output"`
 if [ $RETVAL -eq 0 ]; then
+  if test "${CAN_SUBMIT_TO_OBS+defined}" ; then
+      if [ "$EVENT" == "merge" ] ; then
+          # remove build projects when change is merged
+          for prj in `safeosc ls | grep $RELATED_PROJECTS` ; do
+              safeosc rdelete -rm "Deleted as change $GERRIT_CHANGE_NUMBER is merged to $GERRIT_BRANCH" $prj || true
+          done
+      fi
+  fi
   echo RUN SUCCESS
   exit 0
 else
