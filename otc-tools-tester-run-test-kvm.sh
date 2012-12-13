@@ -74,9 +74,9 @@ if test "${CAN_SUBMIT_TO_OBS+defined}" ; then
     fi
 
     make -C $pkg_dir all
-    build-package --sproject "$SOURCE_PROJECT" --tproject "$OBS_PROJECT" --package "$PACKAGE" $pkg_dir/*
+    timeout 60m build-package --sproject "$SOURCE_PROJECT" --tproject "$OBS_PROJECT" --package "$PACKAGE" $pkg_dir/*
 else
-    build-package --wait --tproject "$OBS_PROJECT" --timeout 20
+    timeout 60m build-package --wait --tproject "$OBS_PROJECT" --timeout 20
 fi
 
 # re-create directory for reports
