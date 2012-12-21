@@ -50,11 +50,17 @@ if test "${GERRIT_BRANCH+defined}" ; then
     BRANCH_SHA1=`git rev-parse origin/$GERRIT_BRANCH`
     # if change is merged it's sha1 is the same as sha1 of the branch
     if [ "$BRANCH_SHA1" == "$GIT_COMMIT" ] ; then
-        if [ "$GERRIT_BRANCH" == "devel" ] ; then
+        BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
+        if [ "$GERRIT_BRANCH" == "devel" -o "$BRANCH_PREFIX" == "release" ] ; then
             EVENT='merge'
-            # When change is merged sources should be put into SOURCE_PROJECT
-            # usually it's *:Devel
-            OBS_PROJECT=$SOURCE_PROJECT
+            # When change is merged sources should be put into :Devel for devel branch
+            # or into :Pre-release for release-<rnum> branch
+            OBS_PROJECT=`echo $SOURCE_PROJECT|cut -f1 -d:`
+            if [ "$GERRIT_BRANCH" == "devel" ] ; then
+                OBS_PROJECT="$OBS_PROJECT:Devel"
+            else #release-<rnum> branch
+                OBS_PROJECT="$OBS_PROJECT:Pre-release"
+            fi
             SOURCE_PROJECT='DUMMY'
             RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
         fi
