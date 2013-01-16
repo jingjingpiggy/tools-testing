@@ -67,8 +67,12 @@ if test "${GERRIT_BRANCH+defined}" ; then
     fi
 fi
 
+# re-create directory for reports
+rm -rf "$WORKSPACE/reports"
+mkdir "$WORKSPACE/reports"
+
 # Submit packages to OBS
-if test "${CAN_SUBMIT_TO_OBS+defined}" ; then
+if [ "$label" == "Builder" ]; then
 
     if [ -d packaging ] ; then
         pkg_dir=packaging
@@ -80,14 +84,12 @@ if test "${CAN_SUBMIT_TO_OBS+defined}" ; then
     fi
 
     make -C $pkg_dir all
+    cp $JENKINS_HOME/coverage.xml-fake "$WORKSPACE"/reports/coverage.xml
+    cp $JENKINS_HOME/nosetests.xml-fake "$WORKSPACE"/reports/nosetests.xml
     timeout 60m build-package --sproject "$SOURCE_PROJECT" --tproject "$OBS_PROJECT" --package "$PACKAGE" $pkg_dir/*
-else
-    timeout 60m build-package --wait --tproject "$OBS_PROJECT" --timeout 20
+    exit 0
 fi
 
-# re-create directory for reports
-rm -rf "$WORKSPACE/reports"
-mkdir "$WORKSPACE/reports"
 
 # prepare KVM disks and mount KVM home
 KVM_HDA="$KVM_ROOT/kvm-hda-$OBS_REPO"
