@@ -97,8 +97,8 @@ KVM_HDB="$KVM_ROOT/kvm-hdb"
 rm -rf $KVM_ROOT
 mkdir -m 777 $KVM_ROOT
 sudo mount -t tmpfs -o size=8G tmpfs $KVM_ROOT
-cp /var/lib/jenkins/kvm-seed-hda-$OBS_REPO $KVM_HDA
-cp /var/lib/jenkins/kvm-seed-hdb $KVM_HDB
+cp --sparse=always /var/lib/jenkins/kvm-seed-hda-$OBS_REPO $KVM_HDA
+cp --sparse=always /var/lib/jenkins/kvm-seed-hdb $KVM_HDB
 mkdir $BUILDHOME
 sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
 
