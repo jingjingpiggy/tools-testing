@@ -102,6 +102,15 @@ cp --sparse=always /var/lib/jenkins/kvm-seed-hdb $KVM_HDB
 mkdir $BUILDHOME
 sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
 
+# Get OBS build log and show it
+safeosc remotebuildlog "$OBS_PROJECT" $PACKAGE "$OBS_REPO" "$OBS_ARCH"
+# Get OBS build status
+BSTAT=`safeosc results -r "$OBS_REPO" -a "$OBS_ARCH" "$OBS_PROJECT" $PACKAGE | awk '{print $NF}'`
+if [ "$BSTAT" != "succeeded" ]; then
+    echo "Error: package build status is not succeeded but $BSTAT, build FAILED"
+    exit 1
+fi
+
 # Get list of built binary packages
 safeosc ls -b "$OBS_PROJECT" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.list"
 PACKAGES=`sed -n 's/^\(.*\)\.\(deb\|rpm\)$/\1/p' "$WORKSPACE/packages.list"|tr '\n' ' '`
