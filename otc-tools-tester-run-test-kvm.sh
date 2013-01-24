@@ -94,11 +94,12 @@ if [ "$label" == "Builder" ]; then
 fi
 
 # prepare KVM disks and mount KVM home
-KVM_HDA="$KVM_ROOT/kvm-hda-$OBS_REPO"
+TARGET="$OBS_REPO-$OBS_ARCH"
+KVM_HDA="$KVM_ROOT/kvm-hda-$TARGET"
 KVM_HDB="$KVM_ROOT/kvm-hdb"
 mkdir -p -m 777 $KVM_ROOT
 sudo mount -t tmpfs -o size=8G tmpfs $KVM_ROOT
-cp --sparse=always /var/lib/jenkins/kvm-seed-hda-$OBS_REPO $KVM_HDA
+cp --sparse=always /var/lib/jenkins/kvm-seed-hda-$TARGET $KVM_HDA
 cp --sparse=always /var/lib/jenkins/kvm-seed-hdb $KVM_HDB
 mkdir $BUILDHOME
 sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
@@ -148,7 +149,7 @@ $UMOUNT $BUILDHOME
 (
  flock 9 || exit 1
  # under lock: Run tests by starting KVM, executes /home/build/run and shuts down.
- sudo qemu-kvm -name $OBS_REPO -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :1
+ sudo qemu-kvm -name $TARGET -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :1
 ) 9>/tmp/kvm-lockfile
 
 # Mount 2nd disk of VM again to copy the test result and logs
