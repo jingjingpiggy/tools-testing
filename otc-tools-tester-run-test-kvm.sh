@@ -1,6 +1,7 @@
 #!/bin/sh
 set -xeu
 UMOUNT="sudo umount -l"
+OBS_DELETION="$WORKSPACE/info"
 
 Cleanup () {
  mountpoint -q $BUILDHOME && $UMOUNT $BUILDHOME
@@ -43,38 +44,39 @@ BUILDHOME="$KVM_ROOT/mnt"
 SRC_TMPCOPY=`mktemp -d`
 cp -a "../$PROJECT" $SRC_TMPCOPY
 
-
-# Determine type of the event
-EVENT='submit'
-if test "${GERRIT_BRANCH+defined}" ; then
-    git fetch --all
-    BRANCH_SHA1=`git rev-parse origin/$GERRIT_BRANCH`
-    # if change is merged it's sha1 is the same as sha1 of the branch
-    if [ "$BRANCH_SHA1" == "$GIT_COMMIT" ] ; then
-        BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
-        if [ "$GERRIT_BRANCH" == "devel" -o "$BRANCH_PREFIX" == "release" ] ; then
-            EVENT='merge'
-            # When change is merged sources should be put into :Devel for devel branch
-            # or into :Pre-release for release-<rnum> branch
-            OBS_PROJECT=`echo $SOURCE_PROJECT|cut -f1 -d:`
-            if [ "$GERRIT_BRANCH" == "devel" ] ; then
-                OBS_PROJECT="$OBS_PROJECT:Devel"
-            else #release-<rnum> branch
-                OBS_PROJECT="$OBS_PROJECT:Pre-release"
-            fi
-            SOURCE_PROJECT='DUMMY'
-            RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
-        fi
-    fi
-fi
-
 # re-create directory for reports
 rm -rf "$WORKSPACE/reports"
 mkdir "$WORKSPACE/reports"
+echo > "$OBS_DELETION"
 
-# Submit packages to OBS
+# Determine type of the event
+EVENT='submit'
 if [ "$label" == "Builder" ]; then
+    if test "${GERRIT_BRANCH+defined}" ; then
+        git fetch --all
+        BRANCH_SHA1=`git rev-parse origin/$GERRIT_BRANCH`
+        # if change is merged it's sha1 is the same as sha1 of the branch
+        if [ "$BRANCH_SHA1" == "$GIT_COMMIT" ] ; then
+            BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
+            if [ "$GERRIT_BRANCH" == "devel" -o "$BRANCH_PREFIX" == "release" ] ; then
+                EVENT='merge'
+                # When change is merged sources should be put into :Devel for devel branch
+                # or into :Pre-release for release-<rnum> branch
+                OBS_PROJECT=`echo $SOURCE_PROJECT|cut -f1 -d:`
+                if [ "$GERRIT_BRANCH" == "devel" ] ; then
+                    OBS_PROJECT="$OBS_PROJECT:Devel"
+                else #release-<rnum> branch
+                    OBS_PROJECT="$OBS_PROJECT:Pre-release"
+                fi
+                SOURCE_PROJECT='DUMMY'
+                RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
+	        # store record for removal of build projects
+                echo -e "RELATED_PROJECTS=$RELATED_PROJECTS\nGERRIT_CHANGE_NUMBER=$GERRIT_CHANGE_NUMBER\nGERRIT_BRANCH=$GERRIT_BRANCH" > "$OBS_DELETION"
+            fi
+        fi
+    fi
 
+    # Submit packages to OBS
     if [ -d packaging ] ; then
         pkg_dir=packaging
     elif [ -d rpm ] ; then
@@ -90,7 +92,6 @@ if [ "$label" == "Builder" ]; then
     timeout 60m build-package --sproject "$SOURCE_PROJECT" --tproject "$OBS_PROJECT" --package "$PACKAGE" $pkg_dir/*
     exit 0
 fi
-
 
 # prepare KVM disks and mount KVM home
 KVM_HDA="$KVM_ROOT/kvm-hda-$OBS_REPO"
@@ -156,20 +157,15 @@ sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
 # make test run output visible in Jenkins job output
 [ "$(ls -A $BUILDHOME/build/output)" ] && cat "$BUILDHOME/build/output"
 
-# examine KVM session return value, written on last line, to form exit value
+# examine KVM session return value, written on last line, to form exit value,
+# store testing status to be examined by OBS projects deletion job in merge case
 RETVAL=`tail -1 "$BUILDHOME/build/output"`
 if [ $RETVAL -eq 0 ]; then
-  if test "${CAN_SUBMIT_TO_OBS+defined}" ; then
-      if [ "$EVENT" == "merge" ] ; then
-          # remove build projects when change is merged
-          for prj in `safeosc ls | grep $RELATED_PROJECTS` ; do
-              safeosc rdelete -rm "Deleted as change $GERRIT_CHANGE_NUMBER is merged to $GERRIT_BRANCH" $prj || true
-          done
-      fi
-  fi
-  echo RUN SUCCESS
-  exit 0
+    echo "JENKINS_STATUS_SUCCESS=1" >> "$OBS_DELETION"
+    echo RUN SUCCESS
+    exit 0
 else
-  echo RUN FAIL
-  exit 1
+    echo "JENKINS_STATUS_FAIL=1" >> "$OBS_DELETION"
+    echo RUN FAIL
+    exit 1
 fi
