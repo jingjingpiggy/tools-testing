@@ -89,6 +89,7 @@ if [ "$label" == "Builder" ]; then
     make -C $pkg_dir all
     cp $JENKINS_HOME/coverage.xml-fake "$WORKSPACE"/reports/coverage.xml
     cp $JENKINS_HOME/nosetests.xml-fake "$WORKSPACE"/reports/nosetests.xml
+    set +e
     timeout 60m build-package --sproject "$SOURCE_PROJECT" --tproject "$OBS_PROJECT" --package "$PACKAGE" $pkg_dir/*
     exit 0
 fi
