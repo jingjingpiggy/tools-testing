@@ -111,14 +111,19 @@ if [ -z "$PACKAGES" ]; then
   exit 1
 fi
 
-# prepare KVM disks and mount KVM home
+# prepare KVM disk image files and mount KVM home
 TARGET="$OBS_REPO-$OBS_ARCH"
+KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$TARGET"
+KVM_SEED_HDB="$JENKINS_HOME/kvm-seed-hdb"
 KVM_HDA="$KVM_ROOT/kvm-hda-$TARGET"
 KVM_HDB="$KVM_ROOT/kvm-hdb"
+sz_hda=`stat -c %s $KVM_SEED_HDA`
+sz_hdb=`stat -c %s $KVM_SEED_HDB`
+sz_hd=$((sz_hda + sz_hdb))
 mkdir -p -m 777 $KVM_ROOT
-sudo mount -t tmpfs -o size=8G tmpfs $KVM_ROOT
-cp --sparse=always /var/lib/jenkins/kvm-seed-hda-$TARGET $KVM_HDA
-cp --sparse=always /var/lib/jenkins/kvm-seed-hdb $KVM_HDB
+sudo mount -t tmpfs -o size=$sz_hd tmpfs $KVM_ROOT
+cp --sparse=always $KVM_SEED_HDA $KVM_HDA
+cp --sparse=always $KVM_SEED_HDB $KVM_HDB
 mkdir $BUILDHOME
 sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
 
