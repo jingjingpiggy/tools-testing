@@ -94,17 +94,6 @@ if [ "$label" == "Builder" ]; then
     exit 0
 fi
 
-# prepare KVM disks and mount KVM home
-TARGET="$OBS_REPO-$OBS_ARCH"
-KVM_HDA="$KVM_ROOT/kvm-hda-$TARGET"
-KVM_HDB="$KVM_ROOT/kvm-hdb"
-mkdir -p -m 777 $KVM_ROOT
-sudo mount -t tmpfs -o size=8G tmpfs $KVM_ROOT
-cp --sparse=always /var/lib/jenkins/kvm-seed-hda-$TARGET $KVM_HDA
-cp --sparse=always /var/lib/jenkins/kvm-seed-hdb $KVM_HDB
-mkdir $BUILDHOME
-sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
-
 # Get OBS build log and show it
 safeosc remotebuildlog "$OBS_PROJECT" $PACKAGE "$OBS_REPO" "$OBS_ARCH"
 # Get OBS build status
@@ -121,6 +110,17 @@ if [ -z "$PACKAGES" ]; then
   echo "Error: No packages were built by OBS"
   exit 1
 fi
+
+# prepare KVM disks and mount KVM home
+TARGET="$OBS_REPO-$OBS_ARCH"
+KVM_HDA="$KVM_ROOT/kvm-hda-$TARGET"
+KVM_HDB="$KVM_ROOT/kvm-hdb"
+mkdir -p -m 777 $KVM_ROOT
+sudo mount -t tmpfs -o size=8G tmpfs $KVM_ROOT
+cp --sparse=always /var/lib/jenkins/kvm-seed-hda-$TARGET $KVM_HDA
+cp --sparse=always /var/lib/jenkins/kvm-seed-hdb $KVM_HDB
+mkdir $BUILDHOME
+sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
 
 # create run script that will be auto-started in Virtual machine
 cat > $BUILDHOME/build/run << EOF
