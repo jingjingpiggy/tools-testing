@@ -54,9 +54,8 @@ EVENT='submit'
 if [ "$label" == "Builder" ]; then
     if test "${GERRIT_BRANCH+defined}" ; then
         git fetch --all
-        BRANCH_SHA1=`git rev-parse origin/$GERRIT_BRANCH`
-        # if change is merged it's sha1 is the same as sha1 of the branch
-        if [ "$BRANCH_SHA1" == "$GIT_COMMIT" ] ; then
+        # check if change is merged
+        if git branch -r --contains $GIT_COMMIT | grep -q origin/$GERRIT_BRANCH ; then
             BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
             if [ "$GERRIT_BRANCH" == "devel" -o "$BRANCH_PREFIX" == "release" ] ; then
                 EVENT='merge'
