@@ -4,7 +4,7 @@ UMOUNT="sudo umount -l"
 OBS_DELETION="$WORKSPACE/info"
 
 Cleanup () {
- mountpoint -q $BUILDHOME && $UMOUNT $BUILDHOME
+ mountpoint -q $BUILDMOUNT && $UMOUNT $BUILDMOUNT
  mountpoint -q $KVM_ROOT && $UMOUNT $KVM_ROOT
  rm -fr $KVM_ROOT
  rm -fr $SRC_TMPCOPY
@@ -38,7 +38,6 @@ fi
 OBS_PROJECT_NAME="Tools-$PACKAGE$NAME_SUFFIX-$SUFFIX"
 OBS_PROJECT="home:tester:$OBS_PROJECT_NAME"
 KVM_ROOT="../kvm-$PROJECT-$BUILD_NUMBER"
-BUILDHOME="$KVM_ROOT/mnt"
 
 # copy source tree to temp.copy
 SRC_TMPCOPY=`mktemp -d`
@@ -126,34 +125,41 @@ mkdir -p -m 777 $KVM_ROOT
 sudo mount -t tmpfs -o size=$sz_hd tmpfs $KVM_ROOT
 cp --sparse=always $KVM_SEED_HDA $KVM_HDA
 cp --sparse=always $KVM_SEED_HDB $KVM_HDB
-mkdir $BUILDHOME
-sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
+BUILDMOUNT="$KVM_ROOT/mnt"
+mkdir $BUILDMOUNT
+BUILDHOME="$BUILDMOUNT/build"
+BUILDHOMEBIN="$BUILDHOME/bin"
+TARGETBIN="/home/build/bin"
+sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDMOUNT
 
 # create run script that will be auto-started in Virtual machine
-cat > $BUILDHOME/build/run << EOF
+cat > $BUILDHOME/run << EOF
 #!/bin/sh
 set -xe
 TESTREQ_PACKAGES=""
 EOF
 
 if [ "$NAME_SUFFIX" = "-updates" ]; then
-  echo "timeout 5m /usr/bin/otc-tools-tester-update-all-packages.sh" >> $BUILDHOME/build/run
+  echo "timeout 5m $TARGETBIN/otc-tools-tester-update-all-packages.sh" >> $BUILDHOME/run
 fi
 
-cat >> $BUILDHOME/build/run << EOF
-if [ -f /home/build/$PROJECT/packaging/.test-requires -a -x /usr/bin/otc-tools-tester-system-what-release.sh ]; then
-  OSREL=\`/usr/bin/otc-tools-tester-system-what-release.sh\`
+cat >> $BUILDHOME/run << EOF
+if [ -f /home/build/$PROJECT/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
+  OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
   TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$PROJECT/packaging/.test-requires | cut -d':' -f 2\`
 fi
-timeout 5m /usr/bin/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
-timeout 10m su - build /usr/bin/run_tests "/home/build/$PROJECT" /home/build/reports/
+timeout 5m $TARGETBIN/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
+timeout 10m su - build $TARGETBIN/run_tests "/home/build/$PROJECT" /home/build/reports/
 EOF
 
-chmod a+x $BUILDHOME/build/run
+chmod a+x $BUILDHOME/run
 # mv source tree from temp.copy to VM /home/build
-mv "$SRC_TMPCOPY/$PROJECT" $BUILDHOME/build/
-$UMOUNT $BUILDHOME
-
+mv "$SRC_TMPCOPY/$PROJECT" $BUILDHOME/
+# copy scripts that run inside KVM session
+mkdir -p $BUILDHOMEBIN
+cp /usr/bin/install_package /usr/bin/otc-tools-tester-system-what-release.sh /usr/bin/otc-tools-tester-update-all-packages.sh /usr/bin/run_tests $BUILDHOMEBIN
+$UMOUNT $BUILDMOUNT
+date
 (
  flock 9 || exit 1
  # under lock: Run tests by starting KVM, executes /home/build/run and shuts down.
@@ -161,14 +167,14 @@ $UMOUNT $BUILDHOME
 ) 9>/tmp/kvm-lockfile
 
 # Mount 2nd disk of VM again to copy the test result and logs
-sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDHOME
-[ "$(ls -A $BUILDHOME/build/reports/)" ] && cp "$BUILDHOME/build/reports/"* "$WORKSPACE/reports/"
+sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDMOUNT
+[ "$(ls -A $BUILDHOME/reports/)" ] && cp "$BUILDHOME/reports/"* "$WORKSPACE/reports/"
 # make test run output visible in Jenkins job output
-[ "$(ls -A $BUILDHOME/build/output)" ] && cat "$BUILDHOME/build/output"
+[ "$(ls -A $BUILDHOME/output)" ] && cat "$BUILDHOME/output"
 
 # examine KVM session return value, written on last line, to form exit value,
 # store testing status to be examined by OBS projects deletion job in merge case
-RETVAL=`tail -1 "$BUILDHOME/build/output"`
+RETVAL=`tail -1 "$BUILDHOME/output"`
 if [ $RETVAL -eq 0 ]; then
     echo "JENKINS_STATUS_SUCCESS=1" >> "$OBS_DELETION"
     echo RUN SUCCESS
