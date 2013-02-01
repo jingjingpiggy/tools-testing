@@ -67,6 +67,7 @@ if test "${GERRIT_BRANCH+defined}" ; then
                 OBS_PROJECT="$OBS_PROJECT:Pre-release"
             fi
             SOURCE_PROJECT='DUMMY'
+            OBS_PROJECT_NAME=""
 	fi
     fi
 fi
