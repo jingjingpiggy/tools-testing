@@ -34,7 +34,6 @@ elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
 elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d /etc/yum.repos.d ] ; then
 # Fedora
    srclist="/etc/yum.repos.d/otctools.repo"
-   rm $srclist
    [ -n "$project" ] && cat > $srclist <<EOF
 [$project]
 name=$project
