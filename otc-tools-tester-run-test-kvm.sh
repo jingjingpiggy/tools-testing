@@ -131,7 +131,8 @@ mkdir $BUILDMOUNT
 BUILDHOME="$BUILDMOUNT/build"
 BUILDHOMEBIN="$BUILDHOME/bin"
 TARGETBIN="/home/build/bin"
-sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDMOUNT
+HDB_OFFSET=1048576
+sudo mount -o loop,offset=$HDB_OFFSET $KVM_HDB $BUILDMOUNT
 
 # create run script that will be auto-started in Virtual machine
 cat > $BUILDHOME/run << EOF
@@ -170,7 +171,7 @@ date
 ) 9>/tmp/kvm-lockfile
 
 # Mount 2nd disk of VM again to copy the test result and logs
-sudo mount -o loop,offset=1048576 $KVM_HDB $BUILDMOUNT
+sudo mount -o loop,offset=$HDB_OFFSET $KVM_HDB $BUILDMOUNT
 [ "$(ls -A $BUILDHOME/reports/)" ] && cp "$BUILDHOME/reports/"* "$WORKSPACE/reports/"
 # make test run output visible in Jenkins job output
 [ "$(ls -A $BUILDHOME/output)" ] && cat "$BUILDHOME/output"
