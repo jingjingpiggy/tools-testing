@@ -100,8 +100,8 @@ fi
 safeosc remotebuildlog "$OBS_PROJECT" $PACKAGE "$OBS_REPO" "$OBS_ARCH"
 # Get OBS build status
 BSTAT=`safeosc results -r "$OBS_REPO" -a "$OBS_ARCH" "$OBS_PROJECT" $PACKAGE | awk '{print $NF}'`
-if [ "$BSTAT" != "succeeded" ]; then
-    echo "Error: package build status is not succeeded but $BSTAT, build FAILED"
+if [ "$BSTAT" = "failed" ]; then
+    echo "Error: package build status is $BSTAT, build FAILED"
     exit 1
 fi
 
