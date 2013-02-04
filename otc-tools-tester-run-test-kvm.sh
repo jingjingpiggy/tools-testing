@@ -8,6 +8,7 @@ Cleanup () {
  mountpoint -q $KVM_ROOT && $UMOUNT $KVM_ROOT
  rm -fr $KVM_ROOT
  rm -fr $SRC_TMPCOPY
+ date
 }
 
 trap Cleanup INT TERM EXIT ABRT
@@ -25,7 +26,7 @@ if [ $# -gt 3 ]; then
 else
   NAME_SUFFIX=""
 fi
-
+date
 PROJECT=`basename "$(pwd)"`
 SPROJ=`echo "$SOURCE_PROJECT" | sed 's/:/:\//g'`
 
@@ -163,7 +164,9 @@ date
 (
  flock 9 || exit 1
  # under lock: Run tests by starting KVM, executes /home/build/run and shuts down.
+ date
  sudo qemu-kvm -name $TARGET -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :1
+ date
 ) 9>/tmp/kvm-lockfile
 
 # Mount 2nd disk of VM again to copy the test result and logs
