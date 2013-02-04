@@ -68,14 +68,16 @@ if test "${GERRIT_BRANCH+defined}" ; then
             fi
             SOURCE_PROJECT='DUMMY'
             OBS_PROJECT_NAME=""
+            if [ "$label" = "Builder" ]; then
+                # store record for removal of build projects
+                RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
+                echo -e "RELATED_PROJECTS=$RELATED_PROJECTS\nGERRIT_CHANGE_NUMBER=$GERRIT_CHANGE_NUMBER\nGERRIT_BRANCH=$GERRIT_BRANCH" > "$OBS_DELETION"
+            fi
 	fi
     fi
 fi
 
 if [ "$label" == "Builder" ]; then
-    # store record for removal of build projects
-    RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
-    echo -e "RELATED_PROJECTS=$RELATED_PROJECTS\nGERRIT_CHANGE_NUMBER=$GERRIT_CHANGE_NUMBER\nGERRIT_BRANCH=$GERRIT_BRANCH" > "$OBS_DELETION"
     # Submit packages to OBS
     if [ -d packaging ] ; then
         pkg_dir=packaging
