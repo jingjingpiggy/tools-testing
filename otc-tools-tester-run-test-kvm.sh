@@ -56,12 +56,12 @@ if test "${GERRIT_BRANCH+defined}" ; then
     # check if change is merged
     if git branch -r --contains $GIT_COMMIT | grep -q origin/$GERRIT_BRANCH ; then
         BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
-        if [ "$GERRIT_BRANCH" == "devel" -o "$BRANCH_PREFIX" == "release" ] ; then
+        if [ "$GERRIT_BRANCH" = "devel" -o "$BRANCH_PREFIX" = "release" ] ; then
             EVENT='merge'
             # When change is merged sources should be put into :Devel for devel branch
             # or into :Pre-release for release-<rnum> branch
             OBS_PROJECT=`echo $SOURCE_PROJECT|cut -f1 -d:`
-            if [ "$GERRIT_BRANCH" == "devel" ] ; then
+            if [ "$GERRIT_BRANCH" = "devel" ] ; then
                 OBS_PROJECT="$OBS_PROJECT:Devel"
             else #release-<rnum> branch
                 OBS_PROJECT="$OBS_PROJECT:Pre-release"
@@ -71,13 +71,13 @@ if test "${GERRIT_BRANCH+defined}" ; then
             if [ "$label" = "Builder" ]; then
                 # store record for removal of build projects
                 RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
-                echo -e "RELATED_PROJECTS=$RELATED_PROJECTS\nGERRIT_CHANGE_NUMBER=$GERRIT_CHANGE_NUMBER\nGERRIT_BRANCH=$GERRIT_BRANCH" > "$OBS_DELETION"
+                printf "RELATED_PROJECTS=$RELATED_PROJECTS\nGERRIT_CHANGE_NUMBER=$GERRIT_CHANGE_NUMBER\nGERRIT_BRANCH=$GERRIT_BRANCH\n" > "$OBS_DELETION"
             fi
-	fi
+        fi
     fi
 fi
 
-if [ "$label" == "Builder" ]; then
+if [ "$label" = "Builder" ]; then
     # Submit packages to OBS
     if [ -d packaging ] ; then
         pkg_dir=packaging
