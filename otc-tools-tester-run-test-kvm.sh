@@ -11,7 +11,9 @@ Cleanup () {
  date
 }
 
-trap Cleanup INT TERM EXIT ABRT
+if [ "$label" != "Builder" ]; then
+    trap Cleanup INT TERM EXIT ABRT
+fi
 
 if [ $# -lt 3 ]; then
   echo "at least 3 args needed: PACKAGE BUILDROOT SOURCE_PROJECT [NAME_SUFFIX]"
@@ -38,11 +40,12 @@ if test "${GERRIT_CHANGE_NUMBER+defined}" ; then
 fi
 OBS_PROJECT_NAME="Tools-$PACKAGE$NAME_SUFFIX-$SUFFIX"
 OBS_PROJECT="home:tester:$OBS_PROJECT_NAME"
-KVM_ROOT="../kvm-$PROJECT-$BUILD_NUMBER"
 
-# copy source tree to temp.copy
-SRC_TMPCOPY=`mktemp -d`
-cp -a "../$PROJECT" $SRC_TMPCOPY
+if [ "$label" != "Builder" ]; then
+    # copy source tree to temp.copy
+    SRC_TMPCOPY=`mktemp -d`
+    cp -a "../$PROJECT" $SRC_TMPCOPY
+fi
 
 # re-create directory for reports
 rm -rf "$WORKSPACE/reports"
@@ -117,6 +120,7 @@ fi
 TARGET="$OBS_REPO-$OBS_ARCH"
 KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$TARGET"
 KVM_SEED_HDB="$JENKINS_HOME/kvm-seed-hdb"
+KVM_ROOT="../kvm-$PROJECT-$BUILD_NUMBER"
 KVM_HDA="$KVM_ROOT/kvm-hda-$TARGET"
 KVM_HDB="$KVM_ROOT/kvm-hdb"
 sz_hda=`stat -c %s $KVM_SEED_HDA`
