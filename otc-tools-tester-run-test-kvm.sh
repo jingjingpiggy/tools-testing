@@ -4,10 +4,12 @@ UMOUNT="sudo umount -l"
 OBS_DELETION="$WORKSPACE/info"
 
 Cleanup () {
- mountpoint -q $BUILDMOUNT && $UMOUNT $BUILDMOUNT
- mountpoint -q $KVM_ROOT && $UMOUNT $KVM_ROOT
- rm -fr $KVM_ROOT
- rm -fr $SRC_TMPCOPY
+ test "${SRC_TMPCOPY+defined}" && rm -fr $SRC_TMPCOPY
+ test "${BUILDMOUNT+defined}" && mountpoint -q $BUILDMOUNT && $UMOUNT $BUILDMOUNT
+ if test "${KVM_ROOT+defined}" ; then
+     mountpoint -q $KVM_ROOT && $UMOUNT $KVM_ROOT
+     rm -fr $KVM_ROOT
+ fi
  date
 }
 
