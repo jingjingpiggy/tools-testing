@@ -1,0 +1,82 @@
+-------------------------------------------------------------------
+Thu Feb  7 10:10:39 UTC 2013 - olev.kartau@intel.com
+
+- version 0.9
+- Add packaging directory for automatic packaging and testing
+- Do not register cleanup handler and copy source on Builder
+- Use HDB partition offset macro instead of number repeated twice
+- Cleaned bashisms
+- add timestamp print in start, end and around KVM session
+- All tester scripts reside in Jenkins machine
+- Build status check fails only if spelled "failed"
+- Record delete pattern as RELATED_PROJECTS only in case of merge
+- Don't use testing repository for merged changes
+- Changed the way of checking if commit is merged
+- Find tmpfs mount size dynamically from size of image files
+- Disable error checking for building in OBS
+- Use target machine type: 32/64 bit in KVM HDA image file name
+- Offload OBS project deletion to dedicated job in Merge event
+- Add checking OBS build status before starting tester part
+- Fixed bug in interpretation of build results
+- Properly delete KVM_ROOT directory after test run
+- Use force sparse option when copying KVM disk image files
+- Support Builder node as separate instance
+- Mapped release-<rnum> -> *:Pre-release
+
+-------------------------------------------------------------------
+Mon Dec 17 11:48:21 UTC 2012 - olev.kartau@intel.com
+
+- version 0.8
+- Used Gerrit change as a part of OBS project name.
+- Implemented processing of merge events
+- Wrap call to build-package in timeout of 60 minutes
+
+-------------------------------------------------------------------
+Mon Dec  3 09:27:18 UTC 2012 - olev.kartau@intel.com
+
+- version 0.7
+- run-kvm.sh: Added propagation of run script ret.val from KVM session:
+- Go back using VNC in KVM session, but with port number 1.
+- Add ABORT signal handling in Cleanup handler:
+
+-------------------------------------------------------------------
+Tue Nov 20 14:04:50 UTC 2012 - olev.kartau@intel.com
+
+- version 0.6
+- run-kvm.sh: KVM session runs without VNC display;
+- Do not copy output to ramfs before showing;
+- Shell tracing and error flags added;
+- Implemented repeating of HTTP queries;
+
+-------------------------------------------------------------------
+Mon Nov 12 21:25:08 UTC 2012 - olev.kartau@intel.com
+
+- version 0.5
+- Reimplemented waiting for build results
+- build_package: made revision in linked project bigger than in base project
+
+-------------------------------------------------------------------
+Tue Nov  6 11:25:07 UTC 2012 - olev.kartau@intel.com
+
+- version 0.4
+- Added run-test KVM variant, changed from osc to safeosc
+- osc call is changed to safeosc call which supports re-tries.
+
+-------------------------------------------------------------------
+Tue Oct 22 15:01:07 UTC 2012 - olev.kartau@intel.com
+
+- version 0.3
+- Increase OBS build monitoring timeout
+
+-------------------------------------------------------------------
+Tue Sep 18 23:11:07 UTC 2012 - olev.kartau@intel.com
+
+- version 0.2
+- Added maintenance scripts for old stuff deletion
+- Added script to print system release;
+- Changed install script to take more arguments, tes-req pkglist
+
+-------------------------------------------------------------------
+Fri Sep  7 14:45:07 UTC 2012 - olev.kartau@intel.com
+
+- Initial version 0.1
