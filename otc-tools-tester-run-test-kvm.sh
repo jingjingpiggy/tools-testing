@@ -129,7 +129,7 @@ sz_hda=`stat -c %s $KVM_SEED_HDA`
 sz_hdb=`stat -c %s $KVM_SEED_HDB`
 sz_hd=$((sz_hda + sz_hdb))
 mkdir -p -m 777 $KVM_ROOT
-sudo mount -t tmpfs -o size=$sz_hd tmpfs $KVM_ROOT
+sudo mount -t tmpfs -o size=$sz_hd -v tmpfs $KVM_ROOT
 cp --sparse=always $KVM_SEED_HDA $KVM_HDA
 cp --sparse=always $KVM_SEED_HDB $KVM_HDB
 BUILDMOUNT="$KVM_ROOT/mnt"
@@ -138,7 +138,7 @@ BUILDHOME="$BUILDMOUNT/build"
 BUILDHOMEBIN="$BUILDHOME/bin"
 TARGETBIN="/home/build/bin"
 HDB_OFFSET=1048576
-sudo mount -o loop,offset=$HDB_OFFSET $KVM_HDB $BUILDMOUNT
+sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
 
 # create run script that will be auto-started in Virtual machine
 cat > $BUILDHOME/run << EOF
@@ -177,7 +177,7 @@ date
 ) 9>/tmp/kvm-lockfile
 
 # Mount 2nd disk of VM again to copy the test result and logs
-sudo mount -o loop,offset=$HDB_OFFSET $KVM_HDB $BUILDMOUNT
+sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
 [ "$(ls -A $BUILDHOME/reports/)" ] && cp "$BUILDHOME/reports/"* "$WORKSPACE/reports/"
 # make test run output visible in Jenkins job output
 [ "$(ls -A $BUILDHOME/output)" ] && cat "$BUILDHOME/output"
