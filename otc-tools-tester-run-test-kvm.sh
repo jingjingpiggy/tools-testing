@@ -130,8 +130,8 @@ sz_hdb=`stat -c %s $KVM_SEED_HDB`
 sz_hd=$((sz_hda + sz_hdb))
 mkdir -p -m 777 $KVM_ROOT
 sudo mount -t tmpfs -o size=$sz_hd -v tmpfs $KVM_ROOT
-cp --sparse=always $KVM_SEED_HDA $KVM_HDA
-cp --sparse=always $KVM_SEED_HDB $KVM_HDB
+cp $KVM_SEED_HDA $KVM_HDA
+cp $KVM_SEED_HDB $KVM_HDB
 BUILDMOUNT="$KVM_ROOT/mnt"
 mkdir $BUILDMOUNT
 BUILDHOME="$BUILDMOUNT/build"
