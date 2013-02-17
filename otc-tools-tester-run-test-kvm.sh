@@ -33,6 +33,8 @@ fi
 date
 PROJECT=`basename "$(pwd)"`
 SPROJ=`echo "$SOURCE_PROJECT" | sed 's/:/:\//g'`
+OBS_REPO=`echo $label|cut -f1 -d-`
+OBS_ARCH=`echo $label|cut -f2 -d-`
 
 SUFFIX="$BUILD_NUMBER"
 if test "${GERRIT_CHANGE_NUMBER+defined}" ; then
@@ -119,11 +121,10 @@ if [ -z "$PACKAGES" ]; then
 fi
 
 # prepare KVM disk image files and mount KVM home
-TARGET="$OBS_REPO-$OBS_ARCH"
-KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$TARGET"
+KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$label"
 KVM_SEED_HDB="$JENKINS_HOME/kvm-seed-hdb"
 KVM_ROOT="../kvm-$PROJECT-$BUILD_NUMBER"
-KVM_HDA="$KVM_ROOT/kvm-hda-$TARGET"
+KVM_HDA="$KVM_ROOT/kvm-hda-$label"
 KVM_HDB="$KVM_ROOT/kvm-hdb"
 sz_hda=`stat -c %s $KVM_SEED_HDA`
 sz_hdb=`stat -c %s $KVM_SEED_HDB`
@@ -172,7 +173,7 @@ date
  flock 9 || exit 1
  # under lock: Run tests by starting KVM, executes /home/build/run and shuts down.
  date
- sudo qemu-kvm -name $TARGET -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :1
+ sudo qemu-kvm -name $label -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :1
  date
 ) 9>/tmp/kvm-lockfile
 
