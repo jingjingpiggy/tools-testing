@@ -1,4 +1,18 @@
 -------------------------------------------------------------------
+Fri Feb 22 16:18:15 UTC 2013 - olev.kartau@intel.com
+
+- version 0.10
+- Do not use timeout wrapper when calling run_tests
+- Perform some setup tasks during package install
+- Call qemu-kvm without sudo
+- Get rid of locking code around KVM session
+- Use EXECUTOR_NUMBER of Jenkins as VNC index
+- Code repo and architecture information in label
+- Take away --sparse=always options from copy
+- Add options to mount commands about ext4 type and verbosity
+- Cleanup handler uses only defined variables
+
+-------------------------------------------------------------------
 Thu Feb  7 10:10:39 UTC 2013 - olev.kartau@intel.com
 
 - version 0.9
