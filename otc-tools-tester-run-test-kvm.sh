@@ -173,7 +173,7 @@ date
  flock 9 || exit 1
  # under lock: Run tests by starting KVM, executes /home/build/run and shuts down.
  date
- sudo qemu-kvm -name $label -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :1
+ sudo qemu-kvm -name $label -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
  date
 ) 9>/tmp/kvm-lockfile
 
