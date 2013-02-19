@@ -169,13 +169,9 @@ mkdir -p $BUILDHOMEBIN
 cp /usr/bin/install_package /usr/bin/otc-tools-tester-system-what-release.sh /usr/bin/otc-tools-tester-update-all-packages.sh /usr/bin/run_tests $BUILDHOMEBIN
 $UMOUNT $BUILDMOUNT
 date
-(
- flock 9 || exit 1
- # under lock: Run tests by starting KVM, executes /home/build/run and shuts down.
- date
- sudo qemu-kvm -name $label -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
- date
-) 9>/tmp/kvm-lockfile
+# Run tests by starting KVM, executes /home/build/run and shuts down.
+sudo qemu-kvm -name $label -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
+date
 
 # Mount 2nd disk of VM again to copy the test result and logs
 sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
