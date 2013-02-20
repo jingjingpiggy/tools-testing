@@ -170,7 +170,7 @@ cp /usr/bin/install_package /usr/bin/otc-tools-tester-system-what-release.sh /us
 $UMOUNT $BUILDMOUNT
 date
 # Run tests by starting KVM, executes /home/build/run and shuts down.
-sudo qemu-kvm -name $label -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
+qemu-kvm -name $label -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
 date
 
 # Mount 2nd disk of VM again to copy the test result and logs
