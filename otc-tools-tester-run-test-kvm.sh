@@ -158,7 +158,7 @@ if [ -f /home/build/$PROJECT/packaging/.test-requires -a -x $TARGETBIN/otc-tools
   TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$PROJECT/packaging/.test-requires | cut -d':' -f 2\`
 fi
 timeout 5m $TARGETBIN/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
-timeout 10m su - build $TARGETBIN/run_tests "/home/build/$PROJECT" /home/build/reports/
+su - build $TARGETBIN/run_tests "/home/build/$PROJECT" /home/build/reports/
 EOF
 
 chmod a+x $BUILDHOME/run
