@@ -1,0 +1,1 @@
+jenkins ALL=NOPASSWD: /usr/bin/mount -o loop*, /usr/bin/mount -t tmpfs*, /usr/bin/umount -l ../kvm-*

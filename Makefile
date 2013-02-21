@@ -5,4 +5,5 @@ otc-tools-tester-maintenance-del-old-obs-builds.sh otc-tools-tester-update-all-p
 install:
 	install -d $(DESTDIR)/usr/bin
 	install -m 0755 $(FILES) $(DESTDIR)/usr/bin
-
+	install -d $(DESTDIR)/etc/sudoers.d
+	install -m 0644 sudoers.jenkins $(DESTDIR)/etc/sudoers.d/jenkins
