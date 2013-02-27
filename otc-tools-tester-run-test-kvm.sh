@@ -31,7 +31,6 @@ else
   NAME_SUFFIX=""
 fi
 date
-PROJECT=`basename "$(pwd)"`
 SPROJ=`echo "$SOURCE_PROJECT" | sed 's/:/:\//g'`
 OBS_REPO=`echo $label|cut -f1 -d-`
 OBS_ARCH=`echo $label|cut -f2 -d-`
@@ -48,7 +47,7 @@ OBS_PROJECT="home:tester:$OBS_PROJECT_NAME"
 if [ "$label" != "Builder" ]; then
     # copy source tree to temp.copy
     SRC_TMPCOPY=`mktemp -d`
-    cp -a "../$PROJECT" $SRC_TMPCOPY
+    cp -a "../$label" $SRC_TMPCOPY
 fi
 
 # re-create directory for reports
@@ -123,7 +122,7 @@ fi
 # prepare KVM disk image files and mount KVM home
 KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$label"
 KVM_SEED_HDB="$JENKINS_HOME/kvm-seed-hdb"
-KVM_ROOT="../kvm-$PROJECT-$BUILD_NUMBER"
+KVM_ROOT="../kvm-$label-$BUILD_NUMBER"
 KVM_HDA="$KVM_ROOT/kvm-hda-$label"
 KVM_HDB="$KVM_ROOT/kvm-hdb"
 sz_hda=`stat -c %s $KVM_SEED_HDA`
@@ -153,17 +152,17 @@ if [ "$NAME_SUFFIX" = "-updates" ]; then
 fi
 
 cat >> $BUILDHOME/run << EOF
-if [ -f /home/build/$PROJECT/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
+if [ -f /home/build/$label/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
   OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
-  TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$PROJECT/packaging/.test-requires | cut -d':' -f 2\`
+  TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$label/packaging/.test-requires | cut -d':' -f 2\`
 fi
 timeout 5m $TARGETBIN/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
-su - build -c "$TARGETBIN/run_tests /home/build/$PROJECT /home/build/reports/ 2>&1"
+su - build -c "$TARGETBIN/run_tests /home/build/$label /home/build/reports/ 2>&1"
 EOF
 
 chmod a+x $BUILDHOME/run
 # mv source tree from temp.copy to VM /home/build
-mv "$SRC_TMPCOPY/$PROJECT" $BUILDHOME/
+mv "$SRC_TMPCOPY/$label" $BUILDHOME/
 # copy scripts that run inside KVM session
 mkdir -p $BUILDHOMEBIN
 cp /usr/bin/install_package /usr/bin/otc-tools-tester-system-what-release.sh /usr/bin/otc-tools-tester-update-all-packages.sh /usr/bin/run_tests $BUILDHOMEBIN
