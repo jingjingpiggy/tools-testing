@@ -1,4 +1,4 @@
-#!/bin/sh -efu
+#!/bin/sh -xefu
 
 src="$1"
 reports_dir="$2"
