@@ -1,5 +1,28 @@
 #!/bin/sh
 set -xeu
+
+if [ -n "${GERRIT_REFNAME+defined}" ] ; then
+    EVENT="ref updated"
+elif [ -n "${GERRIT_BRANCH+defined}" ] ; then
+    EVENT="patchset created"
+else
+    echo 'GERRIT_REFNAME and GERRIT_BRANCH are undefined.'
+    exit 1
+fi
+
+# Check if we support gerrit branch or ref
+if [ "$EVENT" = "ref updated" ] ; then
+    BRANCH_PREFIX=`echo $GERRIT_REFNAME|cut -f1 -d-`
+else
+    BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
+fi
+
+if [ "$BRANCH_PREFIX" != "devel" -a "$BRANCH_PREFIX" != "master" \
+                                 -a "$BRANCH_PREFIX" != "release" ] ; then
+    echo 'Ref $BRANCH_PREFIX is not supported.'
+    exit 1
+fi
+
 UMOUNT="sudo umount -l"
 OBS_DELETION="$WORKSPACE/info"
 
@@ -49,16 +72,10 @@ fi
 
 echo > "$OBS_DELETION"
 
-# Determine type of the event, source and target projects
-git fetch --all
-BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
-# check if change is merged
-if git branch -r --contains $GERRIT_PATCHSET_REVISION | grep -q origin/$GERRIT_BRANCH ; then
-    EVENT='merge'
+if [ "$EVENT" = 'ref updated' ] ; then # ref updated - upload to base
     SOURCE_PROJECT='DUMMY'
     TARGET_PROJECT_NAME=""
-    # When change is merged sources should be put into :Devel for devel branch
-    # or into :Pre-release for release-<rnum> branch
+    # branch -> target repo mapping
     [ "$GERRIT_BRANCH" = "master" ] && TARGET_PROJECT=$MAIN_PROJECT
     [ "$GERRIT_BRANCH" = "devel" ] && TARGET_PROJECT="$MAIN_PROJECT:Devel"
     [ "$BRANCH_PREFIX" = "release" ] && TARGET_PROJECT="$MAIN_PROJECT:Pre-release"
@@ -69,8 +86,8 @@ if git branch -r --contains $GERRIT_PATCHSET_REVISION | grep -q origin/$GERRIT_B
         printf "RELATED_PROJECTS=$RELATED_PROJECTS\nGERRIT_CHANGE_NUMBER=$GERRIT_CHANGE_NUMBER\nGERRIT_BRANCH=$GERRIT_BRANCH\n" > "$OBS_DELETION"
     fi
     SPROJ=`echo "$TARGET_PROJECT" | sed 's/:/:\//g'`
-else # change submitted
-    EVENT='submit'
+else # patchset created - upload to the linked project
+    # branch -> source repo mapping
     [ "$GERRIT_BRANCH" = "master" ] && SOURCE_PROJECT=$MAIN_PROJECT
     [ "$GERRIT_BRANCH" = "devel" ] && SOURCE_PROJECT="$MAIN_PROJECT:Devel"
     [ "$BRANCH_PREFIX" = "release" ] && SOURCE_PROJECT="$MAIN_PROJECT:Pre-release"
