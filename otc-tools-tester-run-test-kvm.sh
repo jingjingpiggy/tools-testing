@@ -41,8 +41,8 @@ if test "${GERRIT_CHANGE_NUMBER+defined}" ; then
         SUFFIX="$GERRIT_CHANGE_NUMBER.$GERRIT_PATCHSET_NUMBER"
     fi
 fi
-OBS_PROJECT_NAME="Tools-$PACKAGE$NAME_SUFFIX-$SUFFIX"
-OBS_PROJECT="home:tester:$OBS_PROJECT_NAME"
+TARGET_PROJECT_NAME="Tools-$PACKAGE$NAME_SUFFIX-$SUFFIX"
+TARGET_PROJECT="home:tester:$TARGET_PROJECT_NAME"
 
 if [ "$label" != "Builder" ]; then
     # copy source tree to temp.copy
@@ -56,7 +56,7 @@ echo > "$OBS_DELETION"
 EVENT='submit'
 if test "${GERRIT_BRANCH+defined}" ; then
     git fetch --all
-    OBS_PROJECT=`echo $SOURCE_PROJECT|cut -f1 -d:`
+    TARGET_PROJECT=`echo $SOURCE_PROJECT|cut -f1 -d:`
     BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
     # check if change is merged
     if git branch -r --contains $GERRIT_PATCHSET_REVISION | grep -q origin/$GERRIT_BRANCH ; then
@@ -65,12 +65,12 @@ if test "${GERRIT_BRANCH+defined}" ; then
             # When change is merged sources should be put into :Devel for devel branch
             # or into :Pre-release for release-<rnum> branch
             if [ "$GERRIT_BRANCH" = "devel" ] ; then
-                OBS_PROJECT="$OBS_PROJECT:Devel"
+                TARGET_PROJECT="$TARGET_PROJECT:Devel"
             else #release-<rnum> branch
-                OBS_PROJECT="$OBS_PROJECT:Pre-release"
+                TARGET_PROJECT="$TARGET_PROJECT:Pre-release"
             fi
             SOURCE_PROJECT='DUMMY'
-            OBS_PROJECT_NAME=""
+            TARGET_PROJECT_NAME=""
             if [ "$label" = "Builder" ]; then
                 # store record for removal of build projects
                 RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
@@ -79,7 +79,7 @@ if test "${GERRIT_BRANCH+defined}" ; then
         fi
     else # change submitted
         if [ "$BRANCH_PREFIX" = "release" ] ; then # if change submitted to release- branch
-            SOURCE_PROJECT="$OBS_PROJECT:Pre-release" # linked project should be created out of :Pre-release
+            SOURCE_PROJECT="$TARGET_PROJECT:Pre-release" # linked project should be created out of :Pre-release
         fi
     fi
 fi
@@ -101,21 +101,21 @@ if [ "$label" = "Builder" ]; then
     cp $JENKINS_HOME/coverage.xml-fake "$WORKSPACE"/reports/coverage.xml
     cp $JENKINS_HOME/nosetests.xml-fake "$WORKSPACE"/reports/nosetests.xml
     set +e
-    timeout 60m build-package --sproject "$SOURCE_PROJECT" --tproject "$OBS_PROJECT" --package "$PACKAGE" $pkg_dir/*
+    timeout 60m build-package --sproject "$SOURCE_PROJECT" --tproject "$TARGET_PROJECT" --package "$PACKAGE" $pkg_dir/*
     exit 0
 fi
 
 # Get OBS build log and show it
-safeosc remotebuildlog "$OBS_PROJECT" $PACKAGE "$OBS_REPO" "$OBS_ARCH"
+safeosc remotebuildlog "$TARGET_PROJECT" $PACKAGE "$OBS_REPO" "$OBS_ARCH"
 # Get OBS build status
-BSTAT=`safeosc results -r "$OBS_REPO" -a "$OBS_ARCH" "$OBS_PROJECT" $PACKAGE | awk '{print $NF}'`
+BSTAT=`safeosc results -r "$OBS_REPO" -a "$OBS_ARCH" "$TARGET_PROJECT" $PACKAGE | awk '{print $NF}'`
 if [ "$BSTAT" = "failed" ]; then
     echo "Error: package build status is $BSTAT, build FAILED"
     exit 1
 fi
 
 # Get list of built binary packages
-safeosc ls -b "$OBS_PROJECT" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.list"
+safeosc ls -b "$TARGET_PROJECT" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.list"
 PACKAGES=`sed -n 's/^\(.*\)\.\(deb\|rpm\)$/\1/p' "$WORKSPACE/packages.list"|tr '\n' ' '`
 if [ -z "$PACKAGES" ]; then
   echo "Error: No packages were built by OBS"
@@ -155,7 +155,7 @@ if [ -f /home/build/$label/packaging/.test-requires -a -x $TARGETBIN/otc-tools-t
   OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
   TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$label/packaging/.test-requires | cut -d':' -f 2\`
 fi
-$TARGETBIN/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
+$TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
 su - build -c "$TARGETBIN/run_tests /home/build/$label /home/build/reports/ 2>&1"
 EOF
 
