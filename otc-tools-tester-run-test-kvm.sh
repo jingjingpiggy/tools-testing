@@ -56,14 +56,14 @@ echo > "$OBS_DELETION"
 EVENT='submit'
 if test "${GERRIT_BRANCH+defined}" ; then
     git fetch --all
+    OBS_PROJECT=`echo $SOURCE_PROJECT|cut -f1 -d:`
+    BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
     # check if change is merged
     if git branch -r --contains $GERRIT_PATCHSET_REVISION | grep -q origin/$GERRIT_BRANCH ; then
-        BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
         if [ "$GERRIT_BRANCH" = "devel" -o "$BRANCH_PREFIX" = "release" ] ; then
             EVENT='merge'
             # When change is merged sources should be put into :Devel for devel branch
             # or into :Pre-release for release-<rnum> branch
-            OBS_PROJECT=`echo $SOURCE_PROJECT|cut -f1 -d:`
             if [ "$GERRIT_BRANCH" = "devel" ] ; then
                 OBS_PROJECT="$OBS_PROJECT:Devel"
             else #release-<rnum> branch
@@ -76,6 +76,10 @@ if test "${GERRIT_BRANCH+defined}" ; then
                 RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
                 printf "RELATED_PROJECTS=$RELATED_PROJECTS\nGERRIT_CHANGE_NUMBER=$GERRIT_CHANGE_NUMBER\nGERRIT_BRANCH=$GERRIT_BRANCH\n" > "$OBS_DELETION"
             fi
+        fi
+    else # change submitted
+        if [ "$BRANCH_PREFIX" = "release" ] ; then # if change submitted to release- branch
+            SOURCE_PROJECT="$OBS_PROJECT:Pre-release" # linked project should be created out of :Pre-release
         fi
     fi
 fi
