@@ -10,27 +10,31 @@ if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
 # Ubuntu
    srclist="/etc/apt/sources.list.d/Tools.list"
    [ -n "$project" ] && echo "deb http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ /" >  $srclist
-   echo "deb http://download.otctools.jf.intel.com/$sproject/$repo/ /" >> $srclist
+   [ -n "$sproject" ] && echo "deb http://download.otctools.jf.intel.com/$sproject/$repo/ /" >> $srclist
    apt-get update
    apt-get upgrade -y --force-yes
    if [ -n "$testreq_packages" ]; then
      echo "======= Installing TEST REQ packages ========"
      apt-get install -y --force-yes $testreq_packages
    fi
-   echo "======= Installing UNDER TEST packages ========"
-   apt-get install -y --force-yes $packages
+   if [ -n "$packages" ]; then
+     echo "======= Installing UNDER TEST packages ========"
+     apt-get install -y --force-yes $packages
+   fi
 elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
 # OpenSuse
    [ -n "$project" ] && zypper ar -fG http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ $project
-   zypper ar -fG http://download.otctools.jf.intel.com/$sproject/$repo/ tools
+   [ -n "$sproject" ] && zypper ar -fG http://download.otctools.jf.intel.com/$sproject/$repo/ tools
    zypper --non-interactive ref
    zypper --non-interactive up
    if [ -n "$testreq_packages" ]; then
      echo "======= Installing TEST REQ packages ========"
      zypper --non-interactive install $testreq_packages
    fi
-   echo "======= Installing UNDER TEST packages ========"
-   zypper --non-interactive install $packages
+   if [ -n "$packages" ]; then
+     echo "======= Installing UNDER TEST packages ========"
+     zypper --non-interactive install $packages
+   fi
 elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d /etc/yum.repos.d ] ; then
 # Fedora
    srclist="/etc/yum.repos.d/otctools.repo"
@@ -43,7 +47,7 @@ proxy=_none_
 gpgcheck=0
 EOF
 
-cat >> $srclist <<EOF
+[ -n "$sproject" ] && cat >> $srclist <<EOF
 [tools]
 name=tools
 baseurl=http://download.otctools.jf.intel.com/$sproject/$repo/
@@ -57,6 +61,8 @@ EOF
      echo "======= Installing TEST REQ packages ========"
      yum -y install $testreq_packages
    fi
-   echo "======= Installing UNDER TEST packages ========"
-   yum -y install $packages
+   if [ -n "$packages" ]; then
+     echo "======= Installing UNDER TEST packages ========"
+     yum -y install $packages
+   fi
 fi

@@ -147,10 +147,6 @@ set -xe
 TESTREQ_PACKAGES=""
 EOF
 
-if [ "$NAME_SUFFIX" = "-updates" ]; then
-  echo "$TARGETBIN/otc-tools-tester-update-all-packages.sh" >> $BUILDHOME/run
-fi
-
 cat >> $BUILDHOME/run << EOF
 if [ -f /home/build/$label/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
   OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
@@ -165,7 +161,7 @@ chmod a+x $BUILDHOME/run
 mv "$SRC_TMPCOPY/$label" $BUILDHOME/
 # copy scripts that run inside KVM session
 mkdir -p $BUILDHOMEBIN
-cp /usr/bin/install_package /usr/bin/otc-tools-tester-system-what-release.sh /usr/bin/otc-tools-tester-update-all-packages.sh /usr/bin/run_tests $BUILDHOMEBIN
+cp /usr/bin/install_package /usr/bin/otc-tools-tester-system-what-release.sh /usr/bin/run_tests $BUILDHOMEBIN
 $UMOUNT $BUILDMOUNT
 date
 # Run tests by starting KVM, executes /home/build/run and shuts down.
