@@ -148,7 +148,7 @@ TESTREQ_PACKAGES=""
 EOF
 
 if [ "$NAME_SUFFIX" = "-updates" ]; then
-  echo "timeout 5m $TARGETBIN/otc-tools-tester-update-all-packages.sh" >> $BUILDHOME/run
+  echo "$TARGETBIN/otc-tools-tester-update-all-packages.sh" >> $BUILDHOME/run
 fi
 
 cat >> $BUILDHOME/run << EOF
@@ -156,7 +156,7 @@ if [ -f /home/build/$label/packaging/.test-requires -a -x $TARGETBIN/otc-tools-t
   OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
   TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$label/packaging/.test-requires | cut -d':' -f 2\`
 fi
-timeout 5m $TARGETBIN/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
+$TARGETBIN/install_package "$OBS_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
 su - build -c "$TARGETBIN/run_tests /home/build/$label /home/build/reports/ 2>&1"
 EOF
 
