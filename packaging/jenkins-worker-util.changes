@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue Mar 05 11:05:31 UTC 2013 - olev.kartau@intel.com
+
+- version 1.0.0
+- Cleanup, deleted unused files
+- Stop using update-all, install_package does it
+- Removed timeout of 5min from pkgs install commands
+- rename all $PROJECT variables to $label
+- Enable shell commands trace in run_tests script inside KVM
+
+-------------------------------------------------------------------
 Fri Feb 22 16:18:15 UTC 2013 - olev.kartau@intel.com
 
 - version 0.10
