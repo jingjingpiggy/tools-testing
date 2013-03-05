@@ -60,7 +60,7 @@ EVENT='submit'
 if test "${GERRIT_BRANCH+defined}" ; then
     git fetch --all
     # check if change is merged
-    if git branch -r --contains $GIT_COMMIT | grep -q origin/$GERRIT_BRANCH ; then
+    if git branch -r --contains $GERRIT_PATCHSET_REVISION | grep -q origin/$GERRIT_BRANCH ; then
         BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
         if [ "$GERRIT_BRANCH" = "devel" -o "$BRANCH_PREFIX" = "release" ] ; then
             EVENT='merge'
