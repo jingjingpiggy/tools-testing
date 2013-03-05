@@ -19,6 +19,10 @@ if [ -d tests ] ; then
     # Run coverage
     coverage=$(which coverage || which python-coverage)
     $coverage xml
+elif [ -f Makefile ] ; then
+    if make -s -n test ; then
+        make test
+    fi
 fi
 
 # Move reports
