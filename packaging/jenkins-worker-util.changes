@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Mar 06 10:36:41 UTC 2013 - olev.kartau@intel.com
+
+- version 1.1.0
+- Workarounded plugin bug: Reset to the change
+- Used GERRIT_PATCHSET_REVISION instead of GIT_COMMIT
+
+-------------------------------------------------------------------
 Tue Mar 05 11:05:31 UTC 2013 - olev.kartau@intel.com
 
 - version 1.0.0
