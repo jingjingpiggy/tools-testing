@@ -50,9 +50,6 @@ if [ "$label" != "Builder" ]; then
     cp -a "../$label" $SRC_TMPCOPY
 fi
 
-# re-create directory for reports
-rm -rf "$WORKSPACE/reports"
-mkdir "$WORKSPACE/reports"
 echo > "$OBS_DELETION"
 
 # Determine type of the event
@@ -95,6 +92,8 @@ if [ "$label" = "Builder" ]; then
     fi
 
     make -C $pkg_dir all
+    # Builder uses fake reports to keep Jenkins reports processing happy
+    mkdir -p "$WORKSPACE/reports"
     cp $JENKINS_HOME/coverage.xml-fake "$WORKSPACE"/reports/coverage.xml
     cp $JENKINS_HOME/nosetests.xml-fake "$WORKSPACE"/reports/nosetests.xml
     set +e
@@ -167,6 +166,10 @@ date
 # Run tests by starting KVM, executes /home/build/run and shuts down.
 qemu-kvm -name $label -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
 date
+
+# re-create directory for reports
+rm -rf "$WORKSPACE/reports"
+mkdir "$WORKSPACE/reports"
 
 # Mount 2nd disk of VM again to copy the test result and logs
 sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
