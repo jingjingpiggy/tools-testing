@@ -22,9 +22,6 @@ if [ $# -lt 3 ]; then
   exit 1
 fi
 
-# reset to the change to workaround plugin bug
-git reset --hard $GERRIT_PATCHSET_REVISION
-
 PACKAGE=$1
 BUILDROOT=$2
 SOURCE_PROJECT=$3
