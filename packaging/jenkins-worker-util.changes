@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar 11 10:53:32 UTC 2013 - olev.kartau@intel.com
+
+- version 1.1.1
+- Move reports dir deletion to later phase
+- Reverted "resetting to change" workaround
+
+-------------------------------------------------------------------
 Wed Mar 06 10:36:41 UTC 2013 - olev.kartau@intel.com
 
 - version 1.1.0
