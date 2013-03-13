@@ -36,7 +36,11 @@ Cleanup () {
  date
 }
 
-if [ "$label" != "Builder" ]; then
+OBS_REPO=`echo $label|cut -f1 -d-`
+OBS_ARCH=`echo $label|cut -f2 -d-`
+role=$OBS_REPO
+
+if [ "$role" != "Builder" ]; then
     trap Cleanup INT TERM EXIT ABRT
 fi
 
@@ -53,9 +57,6 @@ else
   NAME_SUFFIX=""
 fi
 date
-OBS_REPO=`echo $label|cut -f1 -d-`
-OBS_ARCH=`echo $label|cut -f2 -d-`
-
 SUFFIX="$BUILD_NUMBER"
 if test "${GERRIT_CHANGE_NUMBER+defined}" ; then
     if [ -n "$GERRIT_CHANGE_NUMBER" -a -n "$GERRIT_PATCHSET_NUMBER" ] ; then
@@ -63,7 +64,7 @@ if test "${GERRIT_CHANGE_NUMBER+defined}" ; then
     fi
 fi
 
-if [ "$label" != "Builder" ]; then
+if [ "$role" != "Builder" ]; then
     # copy source tree to temp.copy
     SRC_TMPCOPY=`mktemp -d`
     cp -a "../$label" $SRC_TMPCOPY
@@ -79,7 +80,7 @@ if [ "$EVENT" = 'ref updated' ] ; then # ref updated - upload to base
     [ "$GERRIT_BRANCH" = "devel" ] && TARGET_PROJECT="$MAIN_PROJECT:Devel"
     [ "$BRANCH_PREFIX" = "release" ] && TARGET_PROJECT="$MAIN_PROJECT:Pre-release"
 
-    if [ "$label" = "Builder" ]; then
+    if [ "$role" = "Builder" ]; then
         # store record for removal of build projects
         RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
         printf "RELATED_PROJECTS=$RELATED_PROJECTS\nGERRIT_CHANGE_NUMBER=$GERRIT_CHANGE_NUMBER\nGERRIT_BRANCH=$GERRIT_BRANCH\n" > "$OBS_DELETION"
@@ -95,7 +96,7 @@ else # patchset created - upload to the linked project
     SPROJ=`echo "$SOURCE_PROJECT" | sed 's/:/:\//g'`
 fi
 
-if [ "$label" = "Builder" ]; then
+if [ "$role" = "Builder" ]; then
     # Submit packages to OBS
     if [ -d packaging ] ; then
         pkg_dir=packaging
