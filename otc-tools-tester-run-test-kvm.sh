@@ -40,16 +40,15 @@ if [ "$label" != "Builder" ]; then
     trap Cleanup INT TERM EXIT ABRT
 fi
 
-if [ $# -lt 3 ]; then
-  echo "at least 3 args needed: PACKAGE BUILDROOT SOURCE_PROJECT [NAME_SUFFIX]"
+if [ $# -lt 2 ]; then
+  echo "at least 2 args needed: PACKAGE SOURCE_PROJECT [NAME_SUFFIX]"
   exit 1
 fi
 
 PACKAGE=$1
-BUILDROOT=$2
-MAIN_PROJECT=$3
-if [ $# -gt 3 ]; then
-  NAME_SUFFIX=$4
+MAIN_PROJECT=$2
+if [ $# -gt 2 ]; then
+  NAME_SUFFIX=$3
 else
   NAME_SUFFIX=""
 fi
