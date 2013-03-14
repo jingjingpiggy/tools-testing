@@ -27,7 +27,6 @@ if [ "$BRANCH_PREFIX" != "devel" -a "$BRANCH_PREFIX" != "master" \
 fi
 
 UMOUNT="sudo umount -l"
-OBS_DELETION="$WORKSPACE/info"
 
 Cleanup () {
  test "${SRC_TMPCOPY+defined}" && rm -fr $SRC_TMPCOPY
@@ -73,7 +72,6 @@ if [ "$role" != "Builder" ]; then
     cp -a "../$label" $SRC_TMPCOPY
 fi
 
-echo > "$OBS_DELETION"
 
 if [ "$EVENT" = 'ref updated' ] ; then # ref updated - upload to base
     SOURCE_PROJECT='DUMMY'
@@ -82,12 +80,6 @@ if [ "$EVENT" = 'ref updated' ] ; then # ref updated - upload to base
     [ "$GERRIT_REFNAME" = "master" ] && TARGET_PROJECT=$MAIN_PROJECT
     [ "$GERRIT_REFNAME" = "devel" ] && TARGET_PROJECT="$MAIN_PROJECT:Devel"
     [ "$BRANCH_PREFIX" = "release" ] && TARGET_PROJECT="$MAIN_PROJECT:Pre-release"
-
-    if [ "$role" = "Builder" ]; then
-        # store record for removal of build projects
-        RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
-        printf "RELATED_PROJECTS=$RELATED_PROJECTS\nGERRIT_CHANGE_NUMBER=$GERRIT_CHANGE_NUMBER\nGERRIT_BRANCH=$GERRIT_REFNAME\n" > "$OBS_DELETION"
-    fi
     SPROJ=`echo "$TARGET_PROJECT" | sed 's/:/:\//g'`
 else # patchset created - upload to the linked project
     # branch -> source repo mapping
@@ -197,14 +189,11 @@ sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
 [ "$(ls -A $BUILDHOME/output)" ] && cat "$BUILDHOME/output"
 
 # examine KVM session return value, written on last line, to form exit value,
-# store testing status to be examined by OBS projects deletion job in merge case
 RETVAL=`tail -1 "$BUILDHOME/output"`
 if [ $RETVAL -eq 0 ]; then
-    echo "JENKINS_STATUS_SUCCESS=1" >> "$OBS_DELETION"
     echo RUN SUCCESS
     exit 0
 else
-    echo "JENKINS_STATUS_FAIL=1" >> "$OBS_DELETION"
     echo RUN FAIL
     exit 1
 fi
