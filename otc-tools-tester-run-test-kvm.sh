@@ -3,12 +3,15 @@ set -xeu
 
 if [ -n "${GERRIT_REFNAME+defined}" ] ; then
     EVENT="ref updated"
-elif [ -n "${GERRIT_BRANCH+defined}" ] ; then
+    git fetch origin $GERRIT_REFNAME
+elif [ -n "${GERRIT_REFSPEC+defined}" ] ; then
     EVENT="patchset created"
+    git fetch origin $GERRIT_REFSPEC
 else
-    echo 'GERRIT_REFNAME and GERRIT_BRANCH are undefined.'
+    echo 'GERRIT_REFNAME and GERRIT_REFSPEC are undefined.'
     exit 1
 fi
+git reset --hard FETCH_HEAD
 
 # Check if we support gerrit branch or ref
 if [ "$EVENT" = "ref updated" ] ; then
@@ -76,14 +79,14 @@ if [ "$EVENT" = 'ref updated' ] ; then # ref updated - upload to base
     SOURCE_PROJECT='DUMMY'
     TARGET_PROJECT_NAME=""
     # branch -> target repo mapping
-    [ "$GERRIT_BRANCH" = "master" ] && TARGET_PROJECT=$MAIN_PROJECT
-    [ "$GERRIT_BRANCH" = "devel" ] && TARGET_PROJECT="$MAIN_PROJECT:Devel"
+    [ "$GERRIT_REFNAME" = "master" ] && TARGET_PROJECT=$MAIN_PROJECT
+    [ "$GERRIT_REFNAME" = "devel" ] && TARGET_PROJECT="$MAIN_PROJECT:Devel"
     [ "$BRANCH_PREFIX" = "release" ] && TARGET_PROJECT="$MAIN_PROJECT:Pre-release"
 
     if [ "$role" = "Builder" ]; then
         # store record for removal of build projects
         RELATED_PROJECTS="home:tester:Tools-$PACKAGE$NAME_SUFFIX-$GERRIT_CHANGE_NUMBER\.[0-9]\+"
-        printf "RELATED_PROJECTS=$RELATED_PROJECTS\nGERRIT_CHANGE_NUMBER=$GERRIT_CHANGE_NUMBER\nGERRIT_BRANCH=$GERRIT_BRANCH\n" > "$OBS_DELETION"
+        printf "RELATED_PROJECTS=$RELATED_PROJECTS\nGERRIT_CHANGE_NUMBER=$GERRIT_CHANGE_NUMBER\nGERRIT_BRANCH=$GERRIT_REFNAME\n" > "$OBS_DELETION"
     fi
     SPROJ=`echo "$TARGET_PROJECT" | sed 's/:/:\//g'`
 else # patchset created - upload to the linked project
