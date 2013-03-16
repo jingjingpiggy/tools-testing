@@ -1,31 +1,6 @@
 #!/bin/sh
 set -xeu
 
-if [ -n "${GERRIT_REFNAME+defined}" ] ; then
-    EVENT="ref updated"
-    git fetch origin $GERRIT_REFNAME
-elif [ -n "${GERRIT_REFSPEC+defined}" ] ; then
-    EVENT="patchset created"
-    git fetch origin $GERRIT_REFSPEC
-else
-    echo 'GERRIT_REFNAME and GERRIT_REFSPEC are undefined.'
-    exit 1
-fi
-git reset --hard FETCH_HEAD
-
-# Check if we support gerrit branch or ref
-if [ "$EVENT" = "ref updated" ] ; then
-    BRANCH_PREFIX=`echo $GERRIT_REFNAME|cut -f1 -d-`
-else
-    BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
-fi
-
-if [ "$BRANCH_PREFIX" != "devel" -a "$BRANCH_PREFIX" != "master" \
-                                 -a "$BRANCH_PREFIX" != "release" ] ; then
-    echo 'Ref $BRANCH_PREFIX is not supported.'
-    exit 1
-fi
-
 UMOUNT="sudo umount -l"
 
 Cleanup () {
@@ -66,12 +41,41 @@ if test "${GERRIT_CHANGE_NUMBER+defined}" ; then
     fi
 fi
 
+if [ -n "${GERRIT_REFNAME+defined}" ] ; then
+    EVENT="ref updated"
+    BRANCH_PREFIX=`echo $GERRIT_REFNAME|cut -f1 -d-`
+    REF_TO_FETCH=$GERRIT_REFNAME
+elif [ -n "${GERRIT_REFSPEC+defined}" ] ; then
+    EVENT="patchset created"
+    BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
+    REF_TO_FETCH=$GERRIT_REFSPEC
+else
+    echo 'GERRIT_REFNAME and GERRIT_REFSPEC are undefined.'
+    exit 1
+fi
+
+if [ "$BRANCH_PREFIX" != "devel" -a "$BRANCH_PREFIX" != "master" \
+                                 -a "$BRANCH_PREFIX" != "release" ] ; then
+    echo 'Ref $BRANCH_PREFIX is not supported.'
+    exit 1
+fi
+
+# Get source tree and reset it to proper REF
+if [ ! -d "$GERRIT_PROJECT/.git" ] ; then
+    [ -d "$GERRIT_PROJECT" ] && rm -rf $GERRIT_PROJECT
+    git clone ssh://Gerrit/$GERRIT_PROJECT
+fi
+cd $GERRIT_PROJECT
+git clean -xdf
+git fetch origin $REF_TO_FETCH
+git reset --hard FETCH_HEAD
+git submodule update --init
+
 if [ "$role" != "Builder" ]; then
     # copy source tree to temp.copy
     SRC_TMPCOPY=`mktemp -d`
-    cp -a "../$label" $SRC_TMPCOPY
+    cp -a "../$GERRIT_PROJECT" $SRC_TMPCOPY
 fi
-
 
 if [ "$EVENT" = 'ref updated' ] ; then # ref updated - upload to base
     SOURCE_PROJECT='DUMMY'
@@ -158,17 +162,17 @@ TESTREQ_PACKAGES=""
 EOF
 
 cat >> $BUILDHOME/run << EOF
-if [ -f /home/build/$label/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
+if [ -f /home/build/$GERRIT_PROJECT/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
   OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
-  TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$label/packaging/.test-requires | cut -d':' -f 2\`
+  TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$GERRIT_PROJECT/packaging/.test-requires | cut -d':' -f 2\`
 fi
 $TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
-su - build -c "$TARGETBIN/run_tests /home/build/$label /home/build/reports/ 2>&1"
+su - build -c "$TARGETBIN/run_tests /home/build/$GERRIT_PROJECT /home/build/reports/ 2>&1"
 EOF
 
 chmod a+x $BUILDHOME/run
 # mv source tree from temp.copy to VM /home/build
-mv "$SRC_TMPCOPY/$label" $BUILDHOME/
+mv "$SRC_TMPCOPY/$GERRIT_PROJECT" $BUILDHOME/
 # copy scripts that run inside KVM session
 mkdir -p $BUILDHOMEBIN
 cp /usr/bin/install_package /usr/bin/otc-tools-tester-system-what-release.sh /usr/bin/run_tests $BUILDHOMEBIN
