@@ -3,15 +3,15 @@
 src="$1"
 reports_dir="$2"
 
-cd $src
-
 # Run pylint
 mkdir -p ~/.pylint.d/
-rm -f pylint.log
-for path in `find . -name \*.py`; do
-    pylint --output-format=parseable --reports=y $path >> pylint.log
+rm -f $reports_dir/pylint.log
+export PYTHONPATH=$src
+for path in `find $src -name \*.py`; do
+    pylint --output-format=parseable --reports=y $path >> $reports_dir/pylint.log
 done || :
 
+cd $src
 if [ -d tests ] ; then
     # Run nosetests with coverage support
     nosetests -v --with-coverage --with-xunit
@@ -22,7 +22,7 @@ if [ -d tests ] ; then
 fi
 
 # Move reports
-for fn in pylint.log nosetests.xml coverage.xml ; do
+for fn in nosetests.xml coverage.xml ; do
     [ -f "$fn" ] && mv $fn $reports_dir
 done
 
