@@ -1,4 +1,21 @@
 -------------------------------------------------------------------
+Fri Mar 22 12:24:52 UTC 2013 - olev.kartau@intel.com
+
+- version 1.2.0
+- export PYTHONPATH for pylint, run pylint from higher level dir
+- Added tests performing pre-deployment testcases
+- Stop using git plugin
+- Use git directly to clone/update source trees
+- Get rid of OBS_DELETION file
+- Workarounded Gerrit Trigger behaviour
+- Use first part of $label for $role, enabling Builder-debug
+- Get rid of not used command line parameter
+- Implemented processing of 'ref updated' events
+- Refactored source and target project determination
+- Renamed OBS_PROJECT to TARGET_PROJECT
+- Fixed source project for release- commits
+
+-------------------------------------------------------------------
 Mon Mar 11 10:53:32 UTC 2013 - olev.kartau@intel.com
 
 - version 1.1.1
