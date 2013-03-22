@@ -226,6 +226,18 @@ if [ $RETVAL -eq 0 ]; then
     echo RUN SUCCESS
     exit 0
 else
+    if [ $NAME_SUFFIX = "-debug" ]; then
+        # disable autorun, keep images, add helper script for startng the KVM
+        LOC=$JENKINS_HOME/FAILED
+        RUN=$LOC/$BUILD_TAG-run
+        mkdir -p $LOC
+        mv $KVM_HDA $LOC/$BUILD_TAG-hda
+        mv $BUILDHOME/run $BUILDHOME/run.notactive
+        $UMOUNT $BUILDMOUNT
+        mv $KVM_HDB $LOC/$BUILD_TAG-hdb
+        echo "qemu-kvm -name \"$BUILD_TAG\" -M pc -m 2048 -hda \"$LOC/$BUILD_TAG-hda\" -hdb \"$LOC/$BUILD_TAG-hdb\" -vnc :15" > $RUN
+        chmod 755 $RUN
+    fi
     echo RUN FAIL
     exit 1
 fi
