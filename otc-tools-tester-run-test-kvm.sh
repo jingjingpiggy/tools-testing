@@ -28,11 +28,13 @@ fi
 
 PACKAGE=$1
 MAIN_PROJECT=$2
-if [ $# -gt 2 ]; then
-  NAME_SUFFIX=$3
+GIT_URL=$3
+if [ $# -gt 3 ]; then
+  NAME_SUFFIX=$4
 else
   NAME_SUFFIX=""
 fi
+
 date
 SUFFIX="$BUILD_NUMBER"
 if test "${GERRIT_CHANGE_NUMBER+defined}" ; then
@@ -105,14 +107,28 @@ if [ "$role" = "Builder" ]; then
         echo "Error: No packaging directory found"
         exit 1
     fi
+    # Prepare packaging
+    if [ -n "$GIT_URL" ]; then
+       # if GIT_URL is provided create _service file for git-bildpackage source service
+       revision=`git rev-parse FETCH_HEAD`
+       echo "<services><service name='git-buldpackage'><param name='revision'>$revision</param><param name='url'>$GIT_URL</param></service></services>" > $pkg_dir/_service
+       files="$pkg_dir/_service"
+    elif [ -f $pkg_dir/Makefile ] ; then
+       # If not - use make in packaging/
+       make -C $pkg_dir all
+       files="$pkg_dir/*"
+    else
+       echo "Error: No $pkg_dir/Makefile and no GIT_URL provided"
+       exit 1
+    fi
 
-    make -C $pkg_dir all
     # Builder uses fake reports to keep Jenkins reports processing happy
     mkdir -p "$WORKSPACE/reports"
     cp $JENKINS_HOME/coverage.xml-fake "$WORKSPACE"/reports/coverage.xml
     cp $JENKINS_HOME/nosetests.xml-fake "$WORKSPACE"/reports/nosetests.xml
     set +e
-    timeout 60m build-package --sproject "$SOURCE_PROJECT" --tproject "$TARGET_PROJECT" --package "$PACKAGE" $pkg_dir/*
+    timeout 60m build-package --sproject "$SOURCE_PROJECT" --tproject "$TARGET_PROJECT" --package "$PACKAGE" $files
+    [ -f $pkg_dir/_service ] && rm $pkg_dir/_service
     exit 0
 fi
 
