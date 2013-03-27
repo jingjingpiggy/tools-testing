@@ -22,18 +22,27 @@ if [ "$role" != "Builder" ]; then
 fi
 
 if [ $# -lt 2 ]; then
-  echo "at least 2 args needed: PACKAGE SOURCE_PROJECT [NAME_SUFFIX]"
+  echo "Usage: PACKAGE SOURCE_PROJECT [ -s NAME_SUFFIX] [-u GIT_URL]"
   exit 1
 fi
 
+NAME_SUFFIX=""
+GIT_URL=""
+set -- $(getopt s:u: "$@")
+while [ $# -gt 0 ]
+do
+    case "$1" in
+    (-u) GIT_URL=$2; shift;;
+    (-s) NAME_SUFFIX=$2; shift;;
+    (--) shift; break;;
+    (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+    (*)  break;;
+    esac
+    shift
+done
+
 PACKAGE=$1
 MAIN_PROJECT=$2
-GIT_URL=$3
-if [ $# -gt 3 ]; then
-  NAME_SUFFIX=$4
-else
-  NAME_SUFFIX=""
-fi
 
 date
 SUFFIX="$BUILD_NUMBER"
@@ -111,7 +120,7 @@ if [ "$role" = "Builder" ]; then
     if [ -n "$GIT_URL" ]; then
        # if GIT_URL is provided create _service file for git-bildpackage source service
        revision=`git rev-parse FETCH_HEAD`
-       echo "<services><service name='git-buldpackage'><param name='revision'>$revision</param><param name='url'>$GIT_URL</param></service></services>" > $pkg_dir/_service
+       echo "<services><service name='git-buildpackage'><param name='revision'>$revision</param><param name='url'>$GIT_URL</param></service></services>" > $pkg_dir/_service
        files="$pkg_dir/_service"
     elif [ -f $pkg_dir/Makefile ] ; then
        # If not - use make in packaging/
