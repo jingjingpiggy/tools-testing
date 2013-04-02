@@ -57,9 +57,8 @@ def parse_cmdline(argv):
     parser.add_argument("--timeout", type=int, default=15)
     parser.add_argument("--wait", action='store_true')
     options = parser.parse_args(argv)
-    if not options.wait and (not options.sproject or not options.paths \
-                             or not options.package):
-        parser.error("either --wait or --sproject, --package and paths "
+    if not options.wait and (not options.paths or not options.package):
+        parser.error("either --wait or --package and paths "
                      "have to be specified")
     return options
 
@@ -249,6 +248,9 @@ def main(argv):
     else:
         print "package %s : source project %s, target project %s" % \
               (package, sproject, tproject)
+
+        if sproject and not exists(apiurl, sproject):
+            raise BuildError("Source project %s doesn't exist" % sproject)
 
         if not exists(apiurl, tproject):
             print "linking project %s to %s" % (sproject, tproject)

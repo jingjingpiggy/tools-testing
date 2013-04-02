@@ -45,6 +45,7 @@ PACKAGE=$1
 MAIN_PROJECT=$2
 
 date
+SOURCE_PROJECT=''
 SUFFIX="$BUILD_NUMBER"
 if test "${GERRIT_CHANGE_NUMBER+defined}" ; then
     if [ -n "$GERRIT_CHANGE_NUMBER" -a -n "$GERRIT_PATCHSET_NUMBER" ] ; then
@@ -89,7 +90,6 @@ if [ "$role" != "Builder" ]; then
 fi
 
 if [ "$EVENT" = 'ref updated' ] ; then # ref updated - upload to base
-    SOURCE_PROJECT='DUMMY'
     TARGET_PROJECT_NAME=""
     # branch -> target repo mapping
     [ "$GERRIT_REFNAME" = "master" ] && TARGET_PROJECT=$MAIN_PROJECT
@@ -136,7 +136,9 @@ if [ "$role" = "Builder" ]; then
     cp $JENKINS_HOME/coverage.xml-fake "$WORKSPACE"/reports/coverage.xml
     cp $JENKINS_HOME/nosetests.xml-fake "$WORKSPACE"/reports/nosetests.xml
     set +e
-    timeout 60m build-package --sproject "$SOURCE_PROJECT" --tproject "$TARGET_PROJECT" --package "$PACKAGE" $files
+    arg_projects="--tproject $TARGET_PROJECT"
+    [ -n "$SOURCE_PROJECT" ] && arg_projects="--sproject $SOURCE_PROJECT $arg_projects"
+    timeout 60m build-package $arg_projects --package "$PACKAGE" $files
     [ -f $pkg_dir/_service ] && rm $pkg_dir/_service
     exit 0
 fi
