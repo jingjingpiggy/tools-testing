@@ -174,6 +174,23 @@ def exists(apiurl, prj, pkg=''):
 
         return True
 
+def delete_project(apiurl, prj, force=False, msg=None):
+    """Delete OBS project."""
+    query = {}
+    if force:
+        query['force'] = "1"
+    if msg:
+        query['comment'] = msg
+    url = osc.core.makeurl(apiurl, ['source', prj], query)
+    for _try in (1, 2, 3):
+        try:
+            osc.core.http_DELETE(url)
+        except urllib2.HTTPError, err:
+            if _try == 3:
+                raise BuildError("can't delete project %s: %s" % (prj, err))
+            continue
+        return
+
 def build_published(status_line):
     """Parse status line and check if project buid is published."""
     for item in status_line.split(';'):
@@ -252,7 +269,13 @@ def main(argv):
         if sproject and not exists(apiurl, sproject):
             raise BuildError("Source project %s doesn't exist" % sproject)
 
-        if not exists(apiurl, tproject):
+        if sproject:
+            # !!! this is dangerous when used incorrectly as it can
+            # remove target repo
+            if exists(apiurl, tproject):
+                print "linked project %s already exists, deleting" % tproject
+                delete_project(apiurl, tproject)
+
             print "linking project %s to %s" % (sproject, tproject)
             link_project(apiurl, sproject, tproject)
 
