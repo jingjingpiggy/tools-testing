@@ -100,11 +100,11 @@ def put_meta(apiurl, metatype, path_args, data):
 
     # Let's make 3 attempts to send the query, because sometimes
     # it failes with urllib2.HTTPError: HTTP Error 500: Internal Server Error
-    for _try in (1, 2, 3):
+    for attempt in (1, 2, 3):
         try:
             osc.core.http_PUT(url, file=filename)
         except urllib2.HTTPError, err:
-            if err.code != 500:
+            if err.code != 500 or attempt == 3:
                 raise
         else:
             break
@@ -167,7 +167,8 @@ def exists(apiurl, prj, pkg=''):
 
         if err:
             if _try == 3:
-                raise BuildError("can't check if %s/%s exists: %s" % (prj, pkg, err))
+                raise BuildError("can't check if %s/%s exists: %s" % \
+                                 (prj, pkg, err))
             else:
                 time.sleep(3)
                 continue
@@ -181,7 +182,7 @@ def build_published(status_line):
             return False
     return True
 
-def build_ok(apiurl, project, package, timeout):
+def build(apiurl, project, package, timeout):
     """Wait until build is successfully finished or failed."""
     # waiting for project and package to appear in OBS
     while not exists(apiurl, project, package):
@@ -198,8 +199,8 @@ def build_ok(apiurl, project, package, timeout):
                                             hide_legend=True, csv=True)
                 except osc.core.ET.ParseError:
                     if _try == 3:
-                        print "error getting build results for %s" % project
-                        return False
+                        raise BuildError("error getting build results for %s" \
+                                         % project)
                     continue
                 break
 
@@ -212,18 +213,18 @@ def build_ok(apiurl, project, package, timeout):
         for pkginfo in results[1:]:
             splitted = pkginfo.split(';')
             statuses.extend([status for status in splitted[1:] \
-                            if status not in \
-                                ('excluded', 'succeeded', 'disabled')])
+                            if status not in ('excluded', 'succeeded',
+                                              'disabled', 'failed')])
             package = splitted[0]
             if [st for st in statuses if st not in ('building', 'scheduled',
                                                     'dispatching', 'finished',
                                                     'blocked', 'broken')]:
-                print 'package %s failed to build: %s' % (package, splitted[1:])
-                return False
+                raise BuildError('package %s is in unknown state: %s' % \
+                                 (package, splitted[1:]))
             print 'waiting for %s: %s' % (package, splitted[1:])
 
         if not statuses:
-            return True
+            return 0
 
         time.sleep(timeout)
 
@@ -263,15 +264,15 @@ def main(argv):
 
 
     print "project %s: waiting for the build results" % tproject
-    if build_ok(apiurl, tproject, package, timeout):
-        print "done"
-        return 0
-    else:
-        print "build failed"
-        return 1
+    return build(apiurl, tproject, package, timeout)
 
 if __name__ == "__main__":
     try:
         sys.exit(main(sys.argv))
     except BuildError, error:
         print "build failed: %s" % str(error)
+    except Exception:
+        import traceback
+        print "Uncatched Exception: "
+        print traceback.format_exc()
+    sys.exit(1)
