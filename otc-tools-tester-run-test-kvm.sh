@@ -139,8 +139,9 @@ if [ "$role" = "Builder" ]; then
     arg_projects="--tproject $TARGET_PROJECT"
     [ -n "$SOURCE_PROJECT" ] && arg_projects="--sproject $SOURCE_PROJECT $arg_projects"
     timeout 60m build-package $arg_projects --package "$PACKAGE" $files
+    buildval=$?
     [ -f $pkg_dir/_service ] && rm $pkg_dir/_service
-    exit 0
+    exit $buildval
 fi
 
 # Get OBS build log and show it
