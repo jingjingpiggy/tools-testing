@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Fri Apr 05 23:23:05 UTC 2013 - olev.kartau@intel.com
+
+- version 1.4.0
+- Added make test which runs checkbashisms for shell scripts
+- In case of failed debug job, disable autorun and keep images
+- Builder exits with return value of build-package instead of zero
+- Implemented re-creation of linked project
+- Made --sproject optional
+- Refactored return codes of build-package
+
+-------------------------------------------------------------------
 Tue Apr 02 09:15:17 UTC 2013 - olev.kartau@intel.com
 
 - version 1.3.0
