@@ -31,6 +31,7 @@ fi
 if [ "$(getent group kvm)" ]; then
   usermod -G kvm jenkins
 fi
+chown 777.users /var/lib/jenkins/FAILED
 
 %files
 %defattr(-,root,root,-)
@@ -38,3 +39,7 @@ fi
 /etc/sudoers.d
 %{_bindir}/*
 /etc/sudoers.d/jenkins
+/var/lib/jenkins
+/var/lib/jenkins/FAILED
+/var/lib/jenkins/FAILED/otc-tools-failedjob-vm-template.xml
+
