@@ -1,5 +1,4 @@
-#!/bin/sh
-set -xeu
+#!/bin/sh -xeu
 
 UMOUNT="sudo umount -l"
 
@@ -83,12 +82,6 @@ git fetch origin $REF_TO_FETCH
 git reset --hard FETCH_HEAD
 git submodule update --init
 
-if [ "$role" != "Builder" ]; then
-    # copy source tree to temp.copy
-    SRC_TMPCOPY=`mktemp -d`
-    cp -a "../$GERRIT_PROJECT" $SRC_TMPCOPY
-fi
-
 if [ "$EVENT" = 'ref updated' ] ; then # ref updated - upload to base
     TARGET_PROJECT_NAME=""
     # branch -> target repo mapping
@@ -106,7 +99,11 @@ else # patchset created - upload to the linked project
     SPROJ=`echo "$SOURCE_PROJECT" | sed 's/:/:\//g'`
 fi
 
-if [ "$role" = "Builder" ]; then
+if [ "$role" != "Builder" ]; then
+    # copy source tree to temp.copy
+    SRC_TMPCOPY=`mktemp -d`
+    cp -a "../$GERRIT_PROJECT" $SRC_TMPCOPY
+else
     # Submit packages to OBS
     if [ -d packaging ] ; then
         pkg_dir=packaging
