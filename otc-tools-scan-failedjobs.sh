@@ -13,6 +13,11 @@ for hda in ${files}; do
   name=`basename $prj`
   vmconfig="/etc/libvirt/qemu/$name.xml"
   if [ ! -f $vmconfig ] ; then
+    # refresh pools so that libvirtd knows about new files
+    pools=`virsh pool-list | tail -n +3 | awk '{print $1}'`
+    for pool in ${pools}; do
+      virsh pool-refresh $pool
+    done
     echo "`date`: VM $name does not exist, creating from template..."
     $lxcroot/usr/bin/otc-tools-create-failedjob-vm-config.sh $name $hda $hdb > $vmconfig
     chmod 600 $vmconfig
