@@ -10,8 +10,8 @@ install:
 	install -m 0755 $(SH_FILES) $(PY_FILES) $(DESTDIR)/usr/bin
 	install -d $(DESTDIR)/etc/sudoers.d
 	install -m 0644 sudoers.jenkins $(DESTDIR)/etc/sudoers.d/jenkins
-	install -d $(DESTDIR)/var/lib/jenkins/FAILED
-	install -m 0644 otc-tools-failedjob-vm-template.xml $(DESTDIR)/var/lib/jenkins/FAILED/otc-tools-failedjob-vm-template.xml
+	install -d $(DESTDIR)/usr/share/libvirt-templates
+	install -m 0644 otc-tools-failedjob-vm-template.xml $(DESTDIR)/usr/share/libvirt-templates
 
 test:
 	checkbashisms $(SH_FILES)

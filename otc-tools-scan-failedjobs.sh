@@ -5,6 +5,8 @@
 
 lxcroot=$1
 dir=$lxcroot/var/lib/jenkins/FAILED
+test -d $dir || exit 0
+config_template=$lxcroot/usr/share/libvirt-templates/otc-tools-failedjob-vm-template.xml
 files=`ls $dir/*hda`
 current=`date +%s`
 for hda in ${files}; do
@@ -19,7 +21,7 @@ for hda in ${files}; do
       virsh pool-refresh $pool
     done
     echo "`date`: VM $name does not exist, creating from template..."
-    $lxcroot/usr/bin/otc-tools-create-failedjob-vm-config.sh $name $hda $hdb > $vmconfig
+    $lxcroot/usr/bin/otc-tools-create-failedjob-vm-config.sh $name $hda $hdb $config_template > $vmconfig
     chmod 600 $vmconfig
     virsh define $vmconfig
   else
