@@ -11,6 +11,9 @@ Source0:    %{name}-%{version}.tar.gz
 BuildRequires:  coreutils
 
 Requires:   coreutils sudo git-core make osc kvm
+%if 0%{?suse_version} > 1220
+BuildRequires:   shadow
+%endif
 
 %description
 Utils for Otctools Jenkins worker host
