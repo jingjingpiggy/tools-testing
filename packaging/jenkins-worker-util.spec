@@ -38,9 +38,9 @@ fi
 %files
 %defattr(-,root,root,-)
 
-/etc/sudoers.d
 %{_bindir}/*
-/etc/sudoers.d/jenkins
+/etc/sudoers.d
+%config /etc/sudoers.d/jenkins
 /usr/share/libvirt-templates/
 /usr/share/libvirt-templates/otc-tools-failedjob-vm-template.xml
 
