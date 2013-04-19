@@ -1,7 +1,16 @@
 -------------------------------------------------------------------
+Fri Apr 18 15:18:12 UTC 2013 - olev.kartau@intel.com
+
+- version 1.5.1
+- Fix rpmlint warning, add %config for sudoers/jenkins in .spec
+- Changes to make it build & install on openSUSE 12.3
+- Better location for VM config template in /usr/share
+- Refresh pools for libvirtd when new HD images are added
+
+-------------------------------------------------------------------
 Mon Apr 08 21:14:30 UTC 2013 - olev.kartau@intel.com
 
-- to version 1.5.0
+- version 1.5.0
 - Tester-Builder script cleanup
 - Added scripts for managing VMs based on failed session
 - Failsession KVM image names without label=, no local run script
