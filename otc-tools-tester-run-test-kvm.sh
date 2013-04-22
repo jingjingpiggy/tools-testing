@@ -223,7 +223,7 @@ if [ $RETVAL -eq 0 ]; then
     echo RUN SUCCESS
     exit 0
 else
-    if [ $NAME_SUFFIX = "-debug" ]; then
+    if [ "$NAME_SUFFIX" = "-debug" ]; then
         # disable autorun, keep images, add helper script for startng the KVM
         LOC=$JENKINS_HOME/FAILED
         TAG=`echo $BUILD_TAG | sed 's/label=//'`
