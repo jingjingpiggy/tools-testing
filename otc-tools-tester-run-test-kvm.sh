@@ -181,12 +181,8 @@ sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
 
 # create run script that will be auto-started in Virtual machine
 cat > $BUILDHOME/run << EOF
-#!/bin/sh
-set -xe
+#!/bin/sh -xe
 TESTREQ_PACKAGES=""
-EOF
-
-cat >> $BUILDHOME/run << EOF
 if [ -f /home/build/$GERRIT_PROJECT/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
   OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
   TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$GERRIT_PROJECT/packaging/.test-requires | cut -d':' -f 2\`
