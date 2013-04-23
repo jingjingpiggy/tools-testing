@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Apr 23 12:17:22 UTC 2013 - olev.kartau@intel.com
+
+- version 1.5.2
+- Put back timeout of 60min over "run" cmd in target
+- Streamlined "run" script generation
+- Fixed string comparison introduced with recent KVM gen feature
+
+-------------------------------------------------------------------
 Fri Apr 18 15:18:12 UTC 2013 - olev.kartau@intel.com
 
 - version 1.5.1
