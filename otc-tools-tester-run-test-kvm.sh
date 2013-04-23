@@ -188,7 +188,7 @@ if [ -f /home/build/$GERRIT_PROJECT/packaging/.test-requires -a -x $TARGETBIN/ot
   TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$GERRIT_PROJECT/packaging/.test-requires | cut -d':' -f 2\`
 fi
 $TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
-su - build -c "$TARGETBIN/run_tests /home/build/$GERRIT_PROJECT /home/build/reports/ 2>&1"
+su - build -c "timeout 60m $TARGETBIN/run_tests /home/build/$GERRIT_PROJECT /home/build/reports/ 2>&1"
 EOF
 
 chmod a+x $BUILDHOME/run
