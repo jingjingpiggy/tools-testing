@@ -1,13 +1,17 @@
 #!/bin/sh
-# scan given directory for entries which do not have corresponding
-# VM virsh config yet, and create such config and VM
+# arg1=root of LXC, example: "/srv/lxc/jworker-kvm-179-rootfs"
+#
+# This script is called by root crontab on server side, i.e.
+# outside of LXC machine;
+# Scan FAILED directory for new entries and create VM configs,
+# delete VM config and storage if not changed during 7 days.
 #
 
 lxcroot=$1
 dir=$lxcroot/var/lib/jenkins/FAILED
 test -d $dir || exit 0
 config_template=$lxcroot/usr/share/libvirt-templates/otc-tools-failedjob-vm-template.xml
-files=`ls $dir/*hda`
+files=`ls $dir/*hda 2>/dev/null`
 current=`date +%s`
 for hda in ${files}; do
   hdb=`echo $hda | sed s/-hda$/-hdb/`
