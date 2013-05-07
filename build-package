@@ -22,6 +22,7 @@ from collections import defaultdict
 from urllib import quote_plus, pathname2url
 import M2Crypto
 from M2Crypto.SSL.Checker import SSLVerificationError
+from ssl import SSLError
 
 import osc.conf
 import osc.core
@@ -213,7 +214,7 @@ def build(apiurl, project, package, timeout):
                 try:
                     results = osc.core.get_prj_results(apiurl, project,
                                             hide_legend=True, csv=True)
-                except osc.core.ET.ParseError:
+                except osc.core.ET.ParseError, SSLError:
                     if _try == 3:
                         raise BuildError("error getting build results for %s" \
                                          % project)
