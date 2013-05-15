@@ -56,6 +56,11 @@ if [ -n "${GERRIT_REFNAME+defined}" ] ; then
     EVENT="ref updated"
     BRANCH_PREFIX=`echo $GERRIT_REFNAME|cut -f1 -d-`
     REF_TO_FETCH=$GERRIT_REFNAME
+    if [ "$BRANCH_PREFIX" = "test" ] ; then
+        # Set variables needed for linked project creation
+        GERRIT_BRANCH=`echo $GERRIT_REFNAME|cut -f2 -d-`
+        SUFFIX=$GERRIT_REFNAME
+    fi
 elif [ -n "${GERRIT_REFSPEC+defined}" ] ; then
     EVENT="patchset created"
     BRANCH_PREFIX=`echo $GERRIT_BRANCH|cut -f1 -d-`
@@ -66,7 +71,7 @@ else
 fi
 
 if [ "$BRANCH_PREFIX" != "devel" -a "$BRANCH_PREFIX" != "master" \
-                                 -a "$BRANCH_PREFIX" != "release" ] ; then
+     -a "$BRANCH_PREFIX" != "release" -a "$BRANCH_PREFIX" != "test" ] ; then
     echo 'Ref $BRANCH_PREFIX is not supported.'
     exit 1
 fi
@@ -82,18 +87,18 @@ git fetch origin $REF_TO_FETCH
 git reset --hard FETCH_HEAD
 git submodule update --init
 
-if [ "$EVENT" = 'ref updated' ] ; then # ref updated - upload to base
+if [ "$EVENT" = 'ref updated' -a "$BRANCH_PREFIX" != "test" ] ; then # ref updated - upload to base
     TARGET_PROJECT_NAME=""
     # branch -> target repo mapping
     [ "$GERRIT_REFNAME" = "master" ] && TARGET_PROJECT=$MAIN_PROJECT
     [ "$GERRIT_REFNAME" = "devel" ] && TARGET_PROJECT="$MAIN_PROJECT:Devel"
     [ "$BRANCH_PREFIX" = "release" ] && TARGET_PROJECT="$MAIN_PROJECT:Pre-release"
     SPROJ=`echo "$TARGET_PROJECT" | sed 's/:/:\//g'`
-else # patchset created - upload to the linked project
+else # patchset created or test-<target branch> ref updated - upload to the linked project
     # branch -> source repo mapping
     [ "$GERRIT_BRANCH" = "master" ] && SOURCE_PROJECT=$MAIN_PROJECT
     [ "$GERRIT_BRANCH" = "devel" ] && SOURCE_PROJECT="$MAIN_PROJECT:Devel"
-    [ "$BRANCH_PREFIX" = "release" ] && SOURCE_PROJECT="$MAIN_PROJECT:Pre-release"
+    [ "$BRANCH_PREFIX" = "release" -o "$GERRIT_BRANCH" = "release" ] && SOURCE_PROJECT="$MAIN_PROJECT:Pre-release"
     TARGET_PROJECT_NAME="Tools-$PACKAGE$NAME_SUFFIX-$SUFFIX"
     TARGET_PROJECT="home:tester:$TARGET_PROJECT_NAME"
     SPROJ=`echo "$SOURCE_PROJECT" | sed 's/:/:\//g'`
