@@ -187,6 +187,15 @@ sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
 # create run script that will be auto-started in Virtual machine
 cat > $BUILDHOME/run << EOF
 #!/bin/sh -xe
+End () {
+  if [ -f /var/log/messages ]; then
+    tail -50 /var/log/messages > /home/build/syslog
+  elif [ -f /var/log/syslog ]; then
+    tail -50 /var/log/syslog > /home/build/syslog
+  fi
+  dmesg | tail -50 > /home/build/dmesg
+}
+trap End INT TERM EXIT ABRT
 TESTREQ_PACKAGES=""
 if [ -f /home/build/$GERRIT_PROJECT/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
   OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
@@ -223,6 +232,8 @@ sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
 # make test run output visible in Jenkins job output
 [ "$(ls -A $BUILDHOME/output)" ] && cat "$BUILDHOME/output"
 
+[ -f $BUILDHOME/syslog ] && cat $BUILDHOME/syslog
+[ -f $BUILDHOME/dmesg ] && cat $BUILDHOME/dmesg
 # examine KVM session return value, written on last line, to form exit value,
 RETVAL=`tail -1 "$BUILDHOME/output"`
 if [ $RETVAL -eq 0 ]; then
