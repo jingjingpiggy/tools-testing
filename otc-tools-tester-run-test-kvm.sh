@@ -204,8 +204,13 @@ mkdir -p $BUILDHOMEBIN
 cp /usr/bin/install_package /usr/bin/otc-tools-tester-system-what-release.sh /usr/bin/run_tests $BUILDHOMEBIN
 $UMOUNT $BUILDMOUNT
 date
+if [ "$OBS_ARCH" = "i586" ]; then
+  KVM_CPU="-cpu pentium2"
+else
+  KVM_CPU="-cpu core2duo"
+fi
 # Run tests by starting KVM, executes /home/build/run and shuts down.
-qemu-kvm -name $label -M pc -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
+qemu-kvm -name $label -M pc $KVM_CPU -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
 date
 
 # re-create directory for reports
