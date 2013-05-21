@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue May 21 09:14:44 UTC 2013 - olev.kartau@intel.com
+
+- version 1.6.0
+- Show last 50 lines from syslog and dmesg after testing
+- Use 32-bit CPU for running 32-bit distro tests in KVM
+- Implemented handling of test-<target branch>
+- Catch SSLError when getting build results
+- Scan failedjobs: Redirect ls stderr to /dev/null to avoid cron spam
+
+-------------------------------------------------------------------
 Tue Apr 23 12:17:22 UTC 2013 - olev.kartau@intel.com
 
 - version 1.5.2
