@@ -69,7 +69,7 @@ cd /home/build
 mkdir -p reports/ # this dir name is an interface for copy_back_from_kvm
 
 start_time=\$(date +%s)
-timeout 7200 mic cr auto image.ks --logfile=reports/mic.log >reports/console.log 2>&1
+timeout 7200 mic cr auto image.ks --logfile=reports/mic.log -d -v >reports/console.log 2>&1
 exitcode=\$?
 cost=\$(expr \$(date +%s) - \${start_time} + 1) #plus 1 to avoid expr exit 1 when result is 0
 
