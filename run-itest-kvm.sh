@@ -32,7 +32,7 @@ EOF
     done
 
     cat >>$BUILDHOME/run <<EOF
-su - build -c "cd $itest_env_path; runtest -v $test_suite 2>&1"
+su - build -c "cd $itest_env_path; runtest -vv $test_suite 2>&1"
 EOF
 }
 
