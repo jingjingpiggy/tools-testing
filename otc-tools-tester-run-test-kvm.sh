@@ -77,11 +77,12 @@ if [ "$BRANCH_PREFIX" != "devel" -a "$BRANCH_PREFIX" != "master" \
 fi
 
 # Get source tree and reset it to proper REF
-if [ ! -d "$GERRIT_PROJECT/.git" ] ; then
-    [ -d "$GERRIT_PROJECT" ] && rm -rf $GERRIT_PROJECT
+SRCDIR=`echo $GERRIT_PROJECT |sed 's/.*\/\([^/]\+\)/\1/'`
+if [ ! -d "$SRCDIR/.git" ] ; then
+    [ -d "$SRCDIR" ] && rm -rf $SRCDIR
     git clone ssh://Gerrit/$GERRIT_PROJECT
 fi
-cd $GERRIT_PROJECT
+cd $SRCDIR
 git clean -xdf
 git fetch origin $REF_TO_FETCH
 git reset --hard FETCH_HEAD
@@ -107,7 +108,7 @@ fi
 if [ "$role" != "Builder" ]; then
     # copy source tree to temp.copy
     SRC_TMPCOPY=`mktemp -d`
-    cp -a "../$GERRIT_PROJECT" $SRC_TMPCOPY
+    cp -a "../$SRCDIR" $SRC_TMPCOPY
 else
     # Submit packages to OBS
     if [ -d packaging ] ; then
@@ -197,17 +198,17 @@ End () {
 }
 trap End INT TERM EXIT ABRT
 TESTREQ_PACKAGES=""
-if [ -f /home/build/$GERRIT_PROJECT/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
+if [ -f /home/build/$SRCDIR/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
   OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
-  TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$GERRIT_PROJECT/packaging/.test-requires | cut -d':' -f 2\`
+  TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$SRCDIR/packaging/.test-requires | cut -d':' -f 2\`
 fi
 $TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
-su - build -c "timeout 60m $TARGETBIN/run_tests /home/build/$GERRIT_PROJECT /home/build/reports/ 2>&1"
+su - build -c "timeout 60m $TARGETBIN/run_tests /home/build/$SRCDIR /home/build/reports/ 2>&1"
 EOF
 
 chmod a+x $BUILDHOME/run
 # mv source tree from temp.copy to VM /home/build
-mv "$SRC_TMPCOPY/$GERRIT_PROJECT" $BUILDHOME/
+mv "$SRC_TMPCOPY/$SRCDIR" $BUILDHOME/
 # copy scripts that run inside KVM session
 mkdir -p $BUILDHOMEBIN
 cp /usr/bin/install_package /usr/bin/otc-tools-tester-system-what-release.sh /usr/bin/run_tests $BUILDHOMEBIN
