@@ -90,6 +90,12 @@ def branch_package(apiurl, src_project, src_package,
                                target_project=target_project,
                                target_package=target_package)
 
+def create_package(apiurl, prj, pkg):
+    """Create package in the project."""
+    meta = '<package project="%s" name="%s">'\
+           '<title/><description/></package>' % (prj, pkg)
+    put_meta(apiurl, "pkg", (quote_plus(prj), quote_plus(pkg)), meta)
+
 def put_meta(apiurl, metatype, path_args, data):
     """Wrapper to put metadata to OBS."""
     url = osc.core.make_meta_url(metatype, path_args, apiurl, False)
@@ -281,9 +287,13 @@ def main(argv):
             link_project(apiurl, sproject, tproject)
 
         if not exists(apiurl, tproject, package):
-            print "branch package %s/%s to %s/%s" % (sproject, package,
-                                                     tproject, package)
-            branch_package(apiurl, sproject, package, tproject)
+            if exists(apiurl, sproject, package):
+                print "branch package %s/%s to %s/%s" % (sproject, package,
+                                                         tproject, package)
+                branch_package(apiurl, sproject, package, tproject)
+            else:
+                print "create package %s/%s" % (tproject, package)
+                create_package(apiurl, tproject, package)
 
         print "uploading files to %s/%s" % (tproject, package)
         add_files(apiurl, tproject, package, paths)
