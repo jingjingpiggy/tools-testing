@@ -153,6 +153,9 @@ def add_files(apiurl, project, package, files):
 def exists(apiurl, prj, pkg=''):
     """Check if project or/and package exists."""
 
+    if not prj:
+        return False
+
     path_args = [quote_plus(prj)]
 
     for _try in (1, 2, 3):
@@ -287,7 +290,7 @@ def main(argv):
             link_project(apiurl, sproject, tproject)
 
         if not exists(apiurl, tproject, package):
-            if exists(apiurl, sproject, package):
+            if sproject and exists(apiurl, sproject, package):
                 print "branch package %s/%s to %s/%s" % (sproject, package,
                                                          tproject, package)
                 branch_package(apiurl, sproject, package, tproject)

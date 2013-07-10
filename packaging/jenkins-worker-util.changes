@@ -1,10 +1,15 @@
--------------------------------------------------------------------
-Fri Jul  5 12:04:07 UTC 2013 - eduard.bartosh@intel.com
+--------------------------------------------------------------------------
+Wed Jul 10 07:35:24 UTC 2013 Ed Bartosh <eduard.bartosh@intel.com> - 1.7.1
+
+- fixed bug in handling empty sproject
+
+----------------------------------------------------------------------------
+Fri Jul  5 12:04:07 UTC 2013 - Ed Bartosh <eduard.bartosh@intel.com> - 1.7.0
 
 - Create package if it doesn't exist
 - Fixed job failures caused by multi-level projects
 
--------------------------------------------------------------------
+----------------------------------------------------------------------------
 Tue May 21 09:14:44 UTC 2013 - olev.kartau@intel.com
 
 - version 1.6.0
