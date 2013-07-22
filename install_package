@@ -24,7 +24,8 @@ if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
 elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
 # OpenSuse
    [ -n "$project" ] && zypper ar -fG http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ $project
-   [ -n "$sproject" ] && zypper ar -fG http://download.otctools.jf.intel.com/$sproject/$repo/ tools
+   reponame="tools-`echo \"$sproject\" | tr -d '[:punct:][:space:]'`"
+   [ -n "$sproject" ] && zypper ar -fG http://download.otctools.jf.intel.com/$sproject/$repo/ $reponame
    zypper --non-interactive ref
    zypper --non-interactive up
    if [ -n "$testreq_packages" ]; then

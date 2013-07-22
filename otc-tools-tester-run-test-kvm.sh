@@ -1,4 +1,5 @@
 #!/bin/sh -xeu
+. $(dirname $0)/kvm-worker.sh
 
 UMOUNT="sudo umount -l"
 
@@ -11,6 +12,27 @@ Cleanup () {
  fi
  date
 }
+
+additional_init() {
+    # this function will be called when kvm images are ready
+    # to do some additional initial work
+    BUILDHOME=$1
+
+    # create run script that will be auto-started in Virtual machine
+    cat >> $BUILDHOME/run << EOF
+TESTREQ_PACKAGES=""
+if [ -f /home/build/$SRCDIR/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
+  OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
+  TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$SRCDIR/packaging/.test-requires | cut -d':' -f 2\`
+fi
+$TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
+su - build -c "timeout 60m $TARGETBIN/run_tests /home/build/$SRCDIR /home/build/reports/ 2>&1"
+EOF
+
+    # mv source tree from temp.copy to VM /home/build
+    mv "$SRC_TMPCOPY/$SRCDIR" $BUILDHOME/
+}
+
 
 OBS_REPO=`echo $label|cut -f1 -d-`
 OBS_ARCH=`echo $label|cut -f2 -d-`
@@ -164,93 +186,6 @@ if [ -z "$PACKAGES" ]; then
   exit 1
 fi
 
-# prepare KVM disk image files and mount KVM home
-KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$label"
-KVM_SEED_HDB="$JENKINS_HOME/kvm-seed-hdb"
-KVM_ROOT="../kvm-$label-$BUILD_NUMBER"
-KVM_HDA="$KVM_ROOT/kvm-hda-$label"
-KVM_HDB="$KVM_ROOT/kvm-hdb"
-sz_hda=`stat -c %s $KVM_SEED_HDA`
-sz_hdb=`stat -c %s $KVM_SEED_HDB`
-sz_hd=$((sz_hda + sz_hdb))
-mkdir -p -m 777 $KVM_ROOT
-sudo mount -t tmpfs -o size=$sz_hd -v tmpfs $KVM_ROOT
-cp $KVM_SEED_HDA $KVM_HDA
-cp $KVM_SEED_HDB $KVM_HDB
-BUILDMOUNT="$KVM_ROOT/mnt"
-mkdir $BUILDMOUNT
-BUILDHOME="$BUILDMOUNT/build"
-BUILDHOMEBIN="$BUILDHOME/bin"
-TARGETBIN="/home/build/bin"
-HDB_OFFSET=1048576
-sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
-
-# create run script that will be auto-started in Virtual machine
-cat > $BUILDHOME/run << EOF
-#!/bin/sh -xe
-End () {
-  if [ -f /var/log/messages ]; then
-    tail -50 /var/log/messages > /home/build/syslog
-  elif [ -f /var/log/syslog ]; then
-    tail -50 /var/log/syslog > /home/build/syslog
-  fi
-  dmesg | tail -50 > /home/build/dmesg
-}
-trap End INT TERM EXIT ABRT
-TESTREQ_PACKAGES=""
-if [ -f /home/build/$SRCDIR/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
-  OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
-  TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$SRCDIR/packaging/.test-requires | cut -d':' -f 2\`
-fi
-$TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
-su - build -c "timeout 60m $TARGETBIN/run_tests /home/build/$SRCDIR /home/build/reports/ 2>&1"
-EOF
-
-chmod a+x $BUILDHOME/run
-# mv source tree from temp.copy to VM /home/build
-mv "$SRC_TMPCOPY/$SRCDIR" $BUILDHOME/
-# copy scripts that run inside KVM session
-mkdir -p $BUILDHOMEBIN
-cp /usr/bin/install_package /usr/bin/otc-tools-tester-system-what-release.sh /usr/bin/run_tests $BUILDHOMEBIN
-$UMOUNT $BUILDMOUNT
-date
-if [ "$OBS_ARCH" = "i586" ]; then
-  KVM_CPU="-cpu pentium2"
-else
-  KVM_CPU="-cpu core2duo"
-fi
-# Run tests by starting KVM, executes /home/build/run and shuts down.
-qemu-kvm -name $label -M pc $KVM_CPU -m 2048 -boot d -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
-date
-
-# re-create directory for reports
-rm -rf "$WORKSPACE/reports"
-mkdir "$WORKSPACE/reports"
-
-# Mount 2nd disk of VM again to copy the test result and logs
-sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
-[ "$(ls -A $BUILDHOME/reports/)" ] && cp "$BUILDHOME/reports/"* "$WORKSPACE/reports/"
-# make test run output visible in Jenkins job output
-[ "$(ls -A $BUILDHOME/output)" ] && cat "$BUILDHOME/output"
-
-[ -f $BUILDHOME/syslog ] && cat $BUILDHOME/syslog
-[ -f $BUILDHOME/dmesg ] && cat $BUILDHOME/dmesg
-# examine KVM session return value, written on last line, to form exit value,
-RETVAL=`tail -1 "$BUILDHOME/output"`
-if [ $RETVAL -eq 0 ]; then
-    echo RUN SUCCESS
-    exit 0
-else
-    if [ "$NAME_SUFFIX" = "-debug" ]; then
-        # disable autorun, keep images, add helper script for startng the KVM
-        LOC=$JENKINS_HOME/FAILED
-        TAG=`echo $BUILD_TAG | sed 's/label=//'`
-        mkdir -p $LOC
-        mv $KVM_HDA $LOC/$TAG-hda
-        mv $BUILDHOME/run $BUILDHOME/run.notactive
-        $UMOUNT $BUILDMOUNT
-        mv $KVM_HDB $LOC/$TAG-hdb
-    fi
-    echo RUN FAIL
-    exit 1
-fi
+prepare_kvm $label additional_init
+launch_kvm
+copy_back_from_kvm
