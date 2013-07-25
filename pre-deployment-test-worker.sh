@@ -71,6 +71,8 @@ cd /home/build
 mkdir -p reports/ # this dir name is an interface for copy_back_from_kvm
 
 date
+sed -i 's/tmpdir\s*=\s*\/var\/tmp\/mic/tmpdir=\/home\/build\/mic/' /etc/mic/mic.conf
+sed -i 's/cachedir\s*=\s*\/var\/tmp\/mic\/cache/cachedir=\/home\/build\/mic\/cache/' /etc/mic/mic.conf
 python -m pre_deployment_test.create_and_diff -O reports/result.txt "$IMG_BASE_URL"
 exitcode=\$?
 date
