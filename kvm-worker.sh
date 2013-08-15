@@ -131,7 +131,7 @@ copy_back_from_kvm() {
     rm -rf "$WORKSPACE/reports"
     mkdir "$WORKSPACE/reports"
 
-    [ -d $report_path ] && cp -r $report_path/* $WORKSPACE/reports/
+    [ -d $report_path ] && [ "$(ls -A $report_path/)" ] && cp -r $report_path/* $WORKSPACE/reports/
 
     # examine KVM session return value, written on last line, to form exit value,
     RETVAL=`tail -1 "$BUILDHOME/output"`
