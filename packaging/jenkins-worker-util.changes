@@ -1,4 +1,11 @@
 --------------------------------------------------------------------------
+Thu Aug 15 13:45:56 EEST 2013 olev.kartau@intel.com - 1.8.0
+
+- Work made by Huang Hao <hao.h.huang@intel.com>
+- Add support to run itest
+- Common code moved to kvm-worker.sh
+
+--------------------------------------------------------------------------
 Wed Jul 10 07:35:24 UTC 2013 Ed Bartosh <eduard.bartosh@intel.com> - 1.7.1
 
 - fixed bug in handling empty sproject
