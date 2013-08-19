@@ -1,5 +1,35 @@
 #!/bin/sh -xeu
 
+create_rpm_repo() {
+ reponame=$1
+ url=$2
+
+ repofile="/etc/yum.repos.d/$reponame.repo"
+ cat > $repofile <<EOF
+[$reponame]
+name=$reponame
+baseurl=$url
+enabled=1
+proxy=_none_
+gpgcheck=0
+EOF
+}
+
+install_pkgs() {
+ cmd=$1
+ testreq_pkgs=$2
+ pkgs=$3
+
+ if [ -n "$testreq_pkgs" ]; then
+   echo "======= Installing TEST REQ packages ========"
+   $cmd $testreq_pkgs
+ fi
+ if [ -n "$pkgs" ]; then
+   echo "======= Installing UNDER TEST packages ========"
+   $cmd $pkgs
+ fi
+}
+
 project="$1"
 repo="$2"
 packages="$3"
@@ -13,14 +43,7 @@ if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
    [ -n "$sproject" ] && echo "deb http://download.otctools.jf.intel.com/$sproject/$repo/ /" >> $srclist
    apt-get update
    apt-get upgrade -y --force-yes
-   if [ -n "$testreq_packages" ]; then
-     echo "======= Installing TEST REQ packages ========"
-     apt-get install -y --force-yes $testreq_packages
-   fi
-   if [ -n "$packages" ]; then
-     echo "======= Installing UNDER TEST packages ========"
-     apt-get install -y --force-yes $packages
-   fi
+   install_pkgs "apt-get install -y --force-yes" "$testreq_packages" "$packages"
 elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
 # OpenSuse
    [ -n "$project" ] && zypper ar -fG http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ $project
@@ -28,42 +51,15 @@ elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
    [ -n "$sproject" ] && zypper ar -fG http://download.otctools.jf.intel.com/$sproject/$repo/ $reponame
    zypper --non-interactive ref
    zypper --non-interactive up
-   if [ -n "$testreq_packages" ]; then
-     echo "======= Installing TEST REQ packages ========"
-     zypper --non-interactive install $testreq_packages
-   fi
-   if [ -n "$packages" ]; then
-     echo "======= Installing UNDER TEST packages ========"
-     zypper --non-interactive install $packages
-   fi
+   install_pkgs "zypper --non-interactive install" "$testreq_packages" "$packages"
 elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d /etc/yum.repos.d ] ; then
 # Fedora
    srclist="/etc/yum.repos.d/otctools.repo"
-   [ -n "$project" ] && cat > $srclist <<EOF
-[$project]
-name=$project
-baseurl=http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/
-enabled=1
-proxy=_none_
-gpgcheck=0
-EOF
-
-[ -n "$sproject" ] && cat >> $srclist <<EOF
-[tools]
-name=tools
-baseurl=http://download.otctools.jf.intel.com/$sproject/$repo/
-enabled=1
-proxy=_none_
-gpgcheck=0
-EOF
+   url="http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/"
+   [ -n "$project" ] && create_rpm_repo $project $url
+   url="http://download.otctools.jf.intel.com/$sproject/$repo/"
+   [ -n "$sproject" ] && create_rpm_repo "tools" $url
    yum -y clean all
    yum -y update
-   if [ -n "$testreq_packages" ]; then
-     echo "======= Installing TEST REQ packages ========"
-     yum -y install $testreq_packages
-   fi
-   if [ -n "$packages" ]; then
-     echo "======= Installing UNDER TEST packages ========"
-     yum -y install $packages
-   fi
+   install_pkgs "yum -y install" "$testreq_packages" "$packages"
 fi
