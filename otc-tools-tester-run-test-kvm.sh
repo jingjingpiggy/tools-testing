@@ -21,18 +21,23 @@ additional_init() {
     # create run script that will be auto-started in Virtual machine
     cat >> $BUILDHOME/run << EOF
 TESTREQ_PACKAGES=""
-if [ -f /home/build/$SRCDIR/packaging/.test-requires -a -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
+EXTRA_REPOS=""
+if [ -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
   OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
-  TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$SRCDIR/packaging/.test-requires | cut -d':' -f 2\`
+  if [ -f /home/build/$SRCDIR/packaging/.test-requires ]; then
+    TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$SRCDIR/packaging/.test-requires | cut -d':' -f 2\`
+  fi
+  if [ -f /home/build/$SRCDIR/packaging/.extra-repos ]; then
+    EXTRA_REPOS=\`grep \$OSREL /home/build/$SRCDIR/packaging/.extra-repos | cut -d':' -f 2-\`
+  fi
 fi
-$TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES"
+$TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES" "\$EXTRA_REPOS"
 su - build -c "timeout 60m $TARGETBIN/run_tests /home/build/$SRCDIR /home/build/reports/ 2>&1"
 EOF
 
     # mv source tree from temp.copy to VM /home/build
     mv "$SRC_TMPCOPY/$SRCDIR" $BUILDHOME/
 }
-
 
 OBS_REPO=`echo $label|cut -f1 -d-`
 OBS_ARCH=`echo $label|cut -f2 -d-`
