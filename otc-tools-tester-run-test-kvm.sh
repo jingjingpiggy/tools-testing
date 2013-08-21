@@ -35,7 +35,14 @@ $TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPRO
 su - build -c "timeout 60m $TARGETBIN/run_tests /home/build/$SRCDIR /home/build/reports/ 2>&1"
 EOF
 
-    # mv source tree from temp.copy to VM /home/build
+    # mv source tree from temp.copy to VM /home/build, checking size
+    need_kb=`du -s $SRC_TMPCOPY/$SRCDIR | cut -f1`
+    have_kb=`df -P $BUILDHOME | tail -1 | awk '{print $4}'`
+    if [ $need_kb -gt $have_kb ]; then
+      echo "*** Source ($need_kb KB) does not fit in data volume ($have_kb KB available)!"
+      exit 1
+    fi
+
     mv "$SRC_TMPCOPY/$SRCDIR" $BUILDHOME/
 }
 
