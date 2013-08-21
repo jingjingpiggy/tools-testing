@@ -1,4 +1,11 @@
 --------------------------------------------------------------------------
+Wed Aug 21 13:58:46 EEST 2013 olev.kartau@intel.com - 1.9.0
+
+- Grouped some common code to functions in install_package
+- Add support for dynamically added repos
+- Check source size and fail if too big, before moving source to HDB
+
+--------------------------------------------------------------------------
 Fri Aug 16 12:03:42 EEST 2013 olev.kartau@intel.com - 1.8.1
 
 - Hotfix: must check after kvm session, is there anything in reports dir
