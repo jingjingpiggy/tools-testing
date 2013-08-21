@@ -14,9 +14,9 @@ additional_init() {
     BUILDHOME=$1
 
     cat >>$BUILDHOME/run <<EOF
-$TARGETBIN/install_package "" "$OBS_REPO" "" "itest" "itest-core"
-$TARGETBIN/install_package "" "$OBS_REPO" "" "Tools:/Devel" "gbs"
-$TARGETBIN/install_package "" "$OBS_REPO" "" "itest:/Devel" "itest-cases-gbs"
+$TARGETBIN/install_package "" "$OBS_REPO" "" "itest" "itest-core" ""
+$TARGETBIN/install_package "" "$OBS_REPO" "" "Tools:/Devel" "gbs" ""
+$TARGETBIN/install_package "" "$OBS_REPO" "" "itest:/Devel" "itest-cases-gbs" ""
 
 su - build -c "cd /srv/itest/cases/gbs; runtest -v 2>&1"
 EOF
