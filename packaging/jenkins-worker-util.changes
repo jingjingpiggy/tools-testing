@@ -1,4 +1,9 @@
 --------------------------------------------------------------------------
+Thu Aug 22 23:20:28 EEST 2013 olev.kartau@intel.com - 1.9.1
+
+- Clean SRC_TMPCOPY when process exit.
+
+--------------------------------------------------------------------------
 Wed Aug 21 13:58:46 EEST 2013 olev.kartau@intel.com - 1.9.0
 
 - Grouped some common code to functions in install_package
