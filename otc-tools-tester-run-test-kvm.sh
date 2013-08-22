@@ -5,11 +5,6 @@ UMOUNT="sudo umount -l"
 
 Cleanup () {
  test "${SRC_TMPCOPY+defined}" && rm -fr $SRC_TMPCOPY
- test "${BUILDMOUNT+defined}" && mountpoint -q $BUILDMOUNT && $UMOUNT $BUILDMOUNT
- if test "${KVM_ROOT+defined}" ; then
-     mountpoint -q $KVM_ROOT && $UMOUNT $KVM_ROOT
-     rm -fr $KVM_ROOT
- fi
  date
 }
 
@@ -51,7 +46,7 @@ OBS_ARCH=`echo $label|cut -f2 -d-`
 role=$OBS_REPO
 
 if [ "$role" != "Builder" ]; then
-    trap Cleanup INT TERM EXIT ABRT
+    at_exec Cleanup
 fi
 
 if [ $# -lt 2 ]; then
