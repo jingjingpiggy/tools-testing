@@ -19,11 +19,12 @@ TESTREQ_PACKAGES=""
 EXTRA_REPOS=""
 if [ -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
   OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
+  OSREL2=\`echo \$OSREL | sed s/-/_/g\`
   if [ -f /home/build/$SRCDIR/packaging/.test-requires ]; then
-    TESTREQ_PACKAGES=\`grep \$OSREL /home/build/$SRCDIR/packaging/.test-requires | cut -d':' -f 2\`
+    TESTREQ_PACKAGES=\`egrep "^(\$OSREL|\$OSREL2)\\s*:" /home/build/$SRCDIR/packaging/.test-requires | cut -d':' -f 2\`
   fi
   if [ -f /home/build/$SRCDIR/packaging/.extra-repos ]; then
-    EXTRA_REPOS=\`grep \$OSREL /home/build/$SRCDIR/packaging/.extra-repos | cut -d':' -f 2-\`
+    EXTRA_REPOS=\`egrep "^(\$OSREL|\$OSREL2)\\s*:" /home/build/$SRCDIR/packaging/.extra-repos | cut -d':' -f 2-\`
   fi
 fi
 $TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES" "\$EXTRA_REPOS"
