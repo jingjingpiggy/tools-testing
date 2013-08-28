@@ -154,3 +154,9 @@ copy_back_from_kvm() {
         exit 1
     fi
 }
+
+target_project_basename() {
+ gerrit_name=$1
+ safename=`echo $gerrit_name | sed 's/\//:/g'`
+ echo "Tools-$safename"
+}

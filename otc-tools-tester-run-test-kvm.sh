@@ -130,7 +130,8 @@ else # patchset created or test-<target branch> ref updated - upload to the link
     [ "$GERRIT_BRANCH" = "master" ] && SOURCE_PROJECT=$MAIN_PROJECT
     [ "$GERRIT_BRANCH" = "devel" ] && SOURCE_PROJECT="$MAIN_PROJECT:Devel"
     [ "$BRANCH_PREFIX" = "release" -o "$GERRIT_BRANCH" = "release" ] && SOURCE_PROJECT="$MAIN_PROJECT:Pre-release"
-    TARGET_PROJECT_NAME="Tools-$PACKAGE$NAME_SUFFIX-$SUFFIX"
+    TBNAME=$(target_project_basename "$GERRIT_PROJECT")
+    TARGET_PROJECT_NAME="$TBNAME$NAME_SUFFIX-$SUFFIX"
     TARGET_PROJECT="home:tester:$TARGET_PROJECT_NAME"
     SPROJ=`echo "$SOURCE_PROJECT" | sed 's/:/:\//g'`
 fi
