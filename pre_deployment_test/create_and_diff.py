@@ -75,12 +75,16 @@ ImageType: %s
 Result: %s
 Reason: %s
 MicVersion: %s
+Infra: %s
+Product: %s
+BuildID: %s
 Distribution: %s
 KSURL: %s
 SnapshotURL: %s
 """ % (img.name, imgtyp,
     desc, reason,
-    micver, '-'.join([i.strip() for i in dist]),
+    micver, sshot.infra, sshot.product, sshot.builid,
+    '-'.join([i.strip() for i in dist]),
     img.ksurl, sshot.baseurl)
         print "-"*40
         print msg
