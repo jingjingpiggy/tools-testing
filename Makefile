@@ -1,7 +1,8 @@
 SH_FILES := install_package run_tests otc-tools-tester-run-test-kvm.sh \
 otc-tools-tester-system-what-release.sh otc-tools-tester-maintenance-del-old-buildroots.sh \
 otc-tools-tester-maintenance-del-old-obs-builds.sh otc-tools-create-failedjob-vm-config.sh \
-otc-tools-scan-failedjobs.sh kvm-worker.sh run-itest-kvm.sh trigger_itest_verify.sh
+otc-tools-scan-failedjobs.sh kvm-worker.sh run-itest-kvm.sh trigger_itest_verify.sh \
+otc-tools-tester-delete-merged-jobs.sh
 
 PY_FILES := build-package safeosc
 
