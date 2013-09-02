@@ -85,7 +85,7 @@ trigger_by_patchset_created() {
     branch=$GERRIT_BRANCH
 
     add_pack \
-        "home:/tester:/Tools-${TEST_CASE_PACKAGE}-${GERRIT_CHANGE_NUMBER}.${GERRIT_PATCHSET_NUMBER}" \
+        "home:/tester:/Tools-itest:/${TEST_CASE_PACKAGE}-${GERRIT_CHANGE_NUMBER}.${GERRIT_PATCHSET_NUMBER}" \
         $TEST_CASE_PACKAGE
 
     if [ $branch = devel ]; then
