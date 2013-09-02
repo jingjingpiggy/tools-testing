@@ -1,6 +1,6 @@
 Name:       jenkins-worker-util
 Summary:    Utils for Otctools Jenkins worker
-Version:    1.9.1
+Version:    1.10.1
 Release:    1
 Group:      Development/Tools/Other
 License:    Intel Proprietary
@@ -43,4 +43,3 @@ fi
 %config /etc/sudoers.d/jenkins
 /usr/share/libvirt-templates/
 /usr/share/libvirt-templates/otc-tools-failedjob-vm-template.xml
-
