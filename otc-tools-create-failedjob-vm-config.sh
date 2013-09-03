@@ -1,6 +1,8 @@
 #!/bin/sh
 # create VM config from template
 #
+. $(dirname $0)/kvm-worker.sh
+
 name=$1
 hda=$2
 hdb=$3
@@ -13,11 +15,7 @@ hda2=`echo $hda | sed 's/\\//\\\\\//g'`
 hdb2=`echo $hdb | sed 's/\\//\\\\\//g'`
 dir=`dirname $hda`
 arch=`echo $name | awk -F'-' '{print $(NF-2)}'`
-if [ $arch = "i586" ]; then
-  cpu="pentium3"
-else
-  cpu="core2duo"
-fi
+cpu=$(kvm_cpu_name $arch)
 cat $config_template | \
 sed s/UUID_PLACEHOLDER/$uuid/ | \
 sed s/NAME_PLACEHOLDER/$name/ | \

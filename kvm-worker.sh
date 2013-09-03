@@ -101,14 +101,9 @@ EOF
 }
 
 launch_kvm() {
-    if [ "$OBS_ARCH" = "i586" ]; then
-        KVM_CPU="-cpu pentium3"
-    else
-        KVM_CPU="-cpu core2duo"
-    fi
-
+    KVM_CPU=$(kvm_cpu_name $OBS_ARCH)
     # Run tests by starting KVM, executes /home/build/run and shuts down.
-    qemu-kvm -name $KVM_INSTANCE_NAME -M pc $KVM_CPU -m 2048 -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
+    qemu-kvm -name $KVM_INSTANCE_NAME -M pc -cpu $KVM_CPU -m 2048 -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
     date
 }
 
@@ -159,4 +154,13 @@ target_project_basename() {
  gerrit_name=$1
  safename=`echo $gerrit_name | sed 's/\//-/g'`
  echo "Tools-$safename"
+}
+
+kvm_cpu_name() {
+ arch=$1
+ if [ $arch = "i586" ]; then
+   echo "pentium3"
+ else
+   echo "core2duo"
+ fi
 }
