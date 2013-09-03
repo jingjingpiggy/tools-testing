@@ -54,18 +54,18 @@ prepare_kvm() {
 
     # prepare KVM disk image files and mount KVM home
     KVM_INSTANCE_NAME=$label
-    KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$label"
-    KVM_SEED_HDB="$JENKINS_HOME/kvm-seed-hdb"
+    KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$label.tar"
+    KVM_SEED_HDB="$JENKINS_HOME/kvm-seed-hdb.tar"
     KVM_ROOT="../kvm-$label-$BUILD_NUMBER"
     KVM_HDA="$KVM_ROOT/kvm-hda-$label"
     KVM_HDB="$KVM_ROOT/kvm-hdb"
-    sz_hda=`stat -c %s $KVM_SEED_HDA`
-    sz_hdb=`stat -c %s $KVM_SEED_HDB`
+    sz_hda=`tar -tvf $KVM_SEED_HDA | awk '{print $3}'`
+    sz_hdb=`tar -tvf $KVM_SEED_HDB | awk '{print $3}'`
     sz_hd=$((sz_hda + sz_hdb))
     mkdir -p -m 777 $KVM_ROOT
     sudo mount -t tmpfs -o size=$sz_hd -v tmpfs $KVM_ROOT
-    cp $KVM_SEED_HDA $KVM_HDA
-    cp $KVM_SEED_HDB $KVM_HDB
+    tar SxfO - < $KVM_SEED_HDA > $KVM_HDA
+    tar SxfO - < $KVM_SEED_HDB > $KVM_HDB
     BUILDMOUNT="$KVM_ROOT/mnt"
     mkdir $BUILDMOUNT
     BUILDHOME="$BUILDMOUNT/build"
