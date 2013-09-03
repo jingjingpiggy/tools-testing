@@ -14,7 +14,7 @@ hdb2=`echo $hdb | sed 's/\\//\\\\\//g'`
 dir=`dirname $hda`
 arch=`echo $name | awk -F'-' '{print $(NF-2)}'`
 if [ $arch = "i586" ]; then
-  cpu="pentium2"
+  cpu="pentium3"
 else
   cpu="core2duo"
 fi

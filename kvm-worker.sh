@@ -102,7 +102,7 @@ EOF
 
 launch_kvm() {
     if [ "$OBS_ARCH" = "i586" ]; then
-        KVM_CPU="-cpu pentium2"
+        KVM_CPU="-cpu pentium3"
     else
         KVM_CPU="-cpu core2duo"
     fi
