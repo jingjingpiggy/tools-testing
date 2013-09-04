@@ -2,6 +2,7 @@
 # This script should run after "OTC-Tools-Tester-itest-cases-gbs" successfully build packages
 # It will try to generate a trigger file for the downstream job "itest-gbs-daily" which
 # can install the latest packages and verify the change
+. $(dirname $0)/kvm-worker.sh
 
 # trigger file which contains a vaialbe of RUN_ITEST_KVM_ARGV
 TRIGGER_FILE=trigger.env
@@ -84,9 +85,11 @@ trigger_by_ref_updated() {
 trigger_by_patchset_created() {
     branch=$GERRIT_BRANCH
 
-    add_pack \
-        "home:/tester:/Tools-itest:/${TEST_CASE_PACKAGE}-${GERRIT_CHANGE_NUMBER}.${GERRIT_PATCHSET_NUMBER}" \
-        $TEST_CASE_PACKAGE
+    prefix=$(target_project_basename "$TEST_CASE_GERRIT_PROJECT")
+    suffix="${GERRIT_CHANGE_NUMBER}.${GERRIT_PATCHSET_NUMBER}"
+    projname=$(echo "home:tester:${prefix}-${suffix}"|sed 's#:#:/#g')
+
+    add_pack "$projname" $TEST_CASE_PACKAGE
 
     if [ $branch = devel ]; then
         subfix=":/Devel"
@@ -113,7 +116,10 @@ trigger_by_patchset_created() {
 }
 
 usage() {
-    echo "Usage: $0 <test_case_package> <test_case_base_project> <test_target_package> <test_target_base_project>"
+    echo "Usage: $0 <test_case_gerrit_project> <test_case_package> <test_case_base_project> <test_target_package> <test_target_base_project>"
+    echo "    test_case_gerrit_project: Gerrit project name of test cases"
+    echo "        for example: itest/itest-cases-gbs, itest/itest-cases-mic"
+    echo
     echo "    test_case_package: package contains test cases"
     echo "        for example: itest-cases-gbs, itest-cases-mic"
     echo
@@ -149,10 +155,11 @@ if [ $# -lt 4 ]; then
     usage
     exit 1
 fi
-TEST_CASE_PACKAGE=$1
-TEST_CASE_BASE_PROJECT=$2
-TEST_TARGET_PACKAGE=$3
-TEST_TARGET_BASE_PROJECT=$4
+TEST_CASE_GERRIT_PROJECT=$1
+TEST_CASE_PACKAGE=$2
+TEST_CASE_BASE_PROJECT=$3
+TEST_TARGET_PACKAGE=$4
+TEST_TARGET_BASE_PROJECT=$5
 
 #if [ -z "$label" ] || [ "$(echo $label|cut -c -7)" != "Builder" ]; then
     # Only make trigger file on Builder node, since this file only need one copy
