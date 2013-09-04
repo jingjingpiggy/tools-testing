@@ -1,4 +1,13 @@
 ----------------------------------------------------------------------------
+Wed Sep  4 11:41:35 EEST 2013 olev.kartau@intel.com - 1.11.0
+
+- Use common function to get target project name in trigger_itest_verify.sh
+- Use common function to get cpu name in two places
+- Use untar instead of copy to prepare KVM disk images
+- Use pentium III as 32-bit CPU
+- Update OBS project name of home:tester.
+
+----------------------------------------------------------------------------
 Mon Sep  2 09:45:36 EEST 2013 olev.kartau@intel.com - 1.10.0
 
 - Allow two different separators "-" or "_" in what-release output
