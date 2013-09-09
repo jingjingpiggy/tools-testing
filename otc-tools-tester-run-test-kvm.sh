@@ -1,8 +1,6 @@
 #!/bin/sh -xeu
 . $(dirname $0)/kvm-worker.sh
 
-UMOUNT="sudo umount -l"
-
 Cleanup () {
  test "${SRC_TMPCOPY+defined}" && rm -fr $SRC_TMPCOPY
  date
