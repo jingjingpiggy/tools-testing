@@ -15,10 +15,19 @@ additional_init() {
     i=0
     while [ $i -lt $install_package_cnt ]; do
         pack=${install_package_name[$i]}
-        proj=${install_package_proj[$i]}
+        projs=${install_package_proj[$i]}
         i=$(expr $i + 1)
+
+        proj=$(echo $projs|awk -F'|' '{print $1}')
+        sproj=$(echo $projs|awk -F'|' '{print $2}')
+        if [ -z "$sproj" ];then
+            sproj="$proj"
+            proj=""
+        fi
+        # args for install_package:
+        # (project, repo, packages, sproject, testreq_packages, extra_repos)
         cat >>$BUILDHOME/run <<EOF
-$TARGETBIN/install_package "" "$OBS_REPO" "" "$proj" "$pack" ""
+$TARGETBIN/install_package "$proj" "$OBS_REPO" "$pack" "$sproj" "" ""
 EOF
     done
 
@@ -30,7 +39,8 @@ EOF
 usage() {
     echo "Usage: itest_env_path [options]"
     echo "    itest_env_path: path contain test cases"
-    echo "    -p project,package: package to install in vm"
+    echo "    -p project,package[,dependsproject]: package to install in vm,"
+    echo "        dependsproject can be given to install dependent packages"
     echo "    -t test_suite: test to run, comma separated"
     echo "    -s NAME_SUFFIX"
 }
@@ -72,13 +82,15 @@ do
     case "$1" in
     (-h) usage; exit 0;;
     (-p)
-        if [ 2 -ne $(echo $2|awk -F',' '{print NF}') ]; then
+        nargs=$(echo $2|awk -F',' '{print NF}')
+        if [ $nargs -lt 2 ] || [ $nargs -gt 3 ]; then
             echo "Bad package name and project name to install:$2"
             exit 1
         fi
         proj=$(echo $2|awk -F',' '{print $1}')
         pack=$(echo $2|awk -F',' '{print $2}')
-        add_pack $proj $pack
+        depends_proj=$(echo $2|awk -F',' '{print $3}')
+        add_pack "$proj|$depends_proj" $pack
         shift
         ;;
     (-t)
