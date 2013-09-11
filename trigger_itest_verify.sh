@@ -61,8 +61,8 @@ generate_arguments() {
     echo
 }
 
-# trigger by ref-updated event, it should install test cases and
-# test target from corresponding project and run all test cases
+# trigger by ref-updated event, it should install test cases and test
+# target from corresponding project and run "ref-updated" test suite
 trigger_by_ref_updated() {
     branch=$GERRIT_REFNAME
 
@@ -78,6 +78,8 @@ trigger_by_ref_updated() {
     fi
     add_pack "${TEST_CASE_BASE_PROJECT}${subfix}" $TEST_CASE_PACKAGE
     add_pack "${TEST_TARGET_BASE_PROJECT}${subfix}" $TEST_TARGET_PACKAGE
+
+    test_suite=ref-updated
 }
 
 # trigger by patchset-created, it should install tests from
@@ -108,9 +110,8 @@ trigger_by_patchset_created() {
 
     checkout_src
     test_suite=$(detect_case_changes)
-    if [ -z "test_suite" ]; then
-        echo "No test has been changed, skip"
-        exit 0
+    if [ -z "$test_suite" ]; then
+        test_suite=patchset-created
     fi
     cd - # better to use pushd and popd
 }
@@ -128,7 +129,7 @@ usage() {
     echo "        for example: if the base project is itest,"
     echo "        for devel branch, project name will be itest:/Devel,"
     echo "        for release branch, it will be itest:/Pre-release,"
-    echo "        for master branch, it will be the same as itset."
+    echo "        for master branch, it will be the same as itest"
     echo
     echo "    test_target_package: package name of test target"
     echo "        for example: gbs, mic"
