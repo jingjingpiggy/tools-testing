@@ -31,7 +31,6 @@ trap handle_exec INT TERM EXIT ABRT
 prepare_kvm() {
     # Prepare KVM hda and hdb images
     # It sets several global variables for other functions to use:
-    # KVM_INSTANCE_NAME: human-readable name for this kvm instance
     # KVM_HDA: hda image path
     # KVM_HDB: hdb image path
     # HDB_OFFSET: offset of mounting hdb image
@@ -54,7 +53,6 @@ prepare_kvm() {
     at_exec cleanup_tmp_kvm_root
 
     # prepare KVM disk image files and mount KVM home
-    KVM_INSTANCE_NAME=$label
     KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$label.tar"
     KVM_SEED_HDB="$JENKINS_HOME/kvm-seed-hdb.tar"
     KVM_ROOT="../kvm-$label-$BUILD_NUMBER"
@@ -104,7 +102,7 @@ EOF
 launch_kvm() {
     KVM_CPU=$(kvm_cpu_name $OBS_ARCH)
     # Run tests by starting KVM, executes /home/build/run and shuts down.
-    qemu-kvm -name $KVM_INSTANCE_NAME -M pc -cpu $KVM_CPU -m 2048 -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
+    qemu-kvm -name $label -M pc -cpu $KVM_CPU -m 2048 -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
     date
 }
 
