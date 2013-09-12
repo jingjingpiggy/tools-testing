@@ -36,7 +36,8 @@ prepare_kvm() {
     # KVM_HDB: hdb image path
     # HDB_OFFSET: offset of mounting hdb image
     # BUILDHOME: mounted path in host for /home/build in image
-    # KVM_ROOT: tmp dir for this instance, used in cleanup function
+    # KVM_ROOT: tmp dir (in RAM) for HDA, used in cleanup function
+    # KVM_ROOT_ON_DISK: tmp dir for HDB, used in cleanup function
     # BUILDMOUNT: tmp mount path in host, also used in cleanup function
     label=$1
     additional_init=$2
@@ -46,7 +47,7 @@ prepare_kvm() {
         test "${BUILDMOUNT+defined}" && mountpoint -q $BUILDMOUNT && $UMOUNT $BUILDMOUNT
         if test "${KVM_ROOT+defined}" ; then
             mountpoint -q $KVM_ROOT && $UMOUNT $KVM_ROOT
-            rm -fr $KVM_ROOT
+            rm -fr $KVM_ROOT $KVM_ROOT_ON_DISK
         fi
         date
     }
@@ -57,16 +58,16 @@ prepare_kvm() {
     KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$label.tar"
     KVM_SEED_HDB="$JENKINS_HOME/kvm-seed-hdb.tar"
     KVM_ROOT="../kvm-$label-$BUILD_NUMBER"
+    KVM_ROOT_ON_DISK="../kvm-$label-$BUILD_NUMBER-disk"
     KVM_HDA="$KVM_ROOT/kvm-hda-$label"
-    KVM_HDB="$KVM_ROOT/kvm-hdb"
+    KVM_HDB="$KVM_ROOT_ON_DISK/kvm-hdb"
     sz_hda=`tar -tvf $KVM_SEED_HDA | awk '{print $3}'`
-    sz_hdb=`tar -tvf $KVM_SEED_HDB | awk '{print $3}'`
-    sz_hd=$((sz_hda + sz_hdb))
     mkdir -p -m 777 $KVM_ROOT
-    sudo mount -t tmpfs -o size=$sz_hd -v tmpfs $KVM_ROOT
+    mkdir -p $KVM_ROOT_ON_DISK
+    sudo mount -t tmpfs -o size=$sz_hda -v tmpfs $KVM_ROOT
     tar SxfO - < $KVM_SEED_HDA > $KVM_HDA
     tar SxfO - < $KVM_SEED_HDB > $KVM_HDB
-    BUILDMOUNT="$KVM_ROOT/mnt"
+    BUILDMOUNT="$KVM_ROOT_ON_DISK/mnt"
     mkdir $BUILDMOUNT
     BUILDHOME="$BUILDMOUNT/build"
     BUILDHOMEBIN="$BUILDHOME/bin"
