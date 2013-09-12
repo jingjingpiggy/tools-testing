@@ -31,11 +31,9 @@ trap handle_exec INT TERM EXIT ABRT
 prepare_kvm() {
     # Prepare KVM hda and hdb images
     # It sets several global variables for other functions to use:
-    # KVM_HDA: hda image path
     # KVM_HDB: hdb image path
     # HDB_OFFSET: offset of mounting hdb image
     # BUILDHOME: mounted path in host for /home/build in image
-    # KVM_ROOT: tmp dir (in RAM) for HDA, used in cleanup function
     # KVM_ROOT_ON_DISK: tmp dir for HDB, used in cleanup function
     # BUILDMOUNT: tmp mount path in host, also used in cleanup function
     label=$1
@@ -44,26 +42,19 @@ prepare_kvm() {
     # register cleanup
     cleanup_tmp_kvm_root() {
         test "${BUILDMOUNT+defined}" && mountpoint -q $BUILDMOUNT && $UMOUNT $BUILDMOUNT
-        if test "${KVM_ROOT+defined}" ; then
-            mountpoint -q $KVM_ROOT && $UMOUNT $KVM_ROOT
-            rm -fr $KVM_ROOT $KVM_ROOT_ON_DISK
+        if test "${KVM_ROOT_ON_DISK+defined}" ; then
+            rm -fr $KVM_ROOT_ON_DISK
         fi
         date
     }
     at_exec cleanup_tmp_kvm_root
 
     # prepare KVM disk image files and mount KVM home
-    KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$label.tar"
+    KVM_SEED_HDA="$JENKINS_HOME/kvm-seed-hda-$label"
     KVM_SEED_HDB="$JENKINS_HOME/kvm-seed-hdb.tar"
-    KVM_ROOT="../kvm-$label-$BUILD_NUMBER"
     KVM_ROOT_ON_DISK="../kvm-$label-$BUILD_NUMBER-disk"
-    KVM_HDA="$KVM_ROOT/kvm-hda-$label"
     KVM_HDB="$KVM_ROOT_ON_DISK/kvm-hdb"
-    sz_hda=`tar -tvf $KVM_SEED_HDA | awk '{print $3}'`
-    mkdir -p -m 777 $KVM_ROOT
     mkdir -p $KVM_ROOT_ON_DISK
-    sudo mount -t tmpfs -o size=$sz_hda -v tmpfs $KVM_ROOT
-    tar SxfO - < $KVM_SEED_HDA > $KVM_HDA
     tar SxfO - < $KVM_SEED_HDB > $KVM_HDB
     BUILDMOUNT="$KVM_ROOT_ON_DISK/mnt"
     mkdir $BUILDMOUNT
@@ -102,7 +93,7 @@ EOF
 launch_kvm() {
     KVM_CPU=$(kvm_cpu_name $OBS_ARCH)
     # Run tests by starting KVM, executes /home/build/run and shuts down.
-    qemu-kvm -name $label -M pc -cpu $KVM_CPU -m 2048 -hda $KVM_HDA -hdb $KVM_HDB -vnc :$EXECUTOR_NUMBER
+    qemu-kvm -name $label -M pc -cpu $KVM_CPU -m 2048 -drive file=$KVM_SEED_HDA,snapshot=on -drive file=$KVM_HDB -vnc :$EXECUTOR_NUMBER
     date
 }
 
@@ -133,17 +124,6 @@ copy_back_from_kvm() {
         echo RUN SUCCESS
         exit 0
     else
-        if [ "$NAME_SUFFIX" = "-debug" ]; then
-            # disable autorun, keep images, add helper script for startng the KVM
-            LOC=$JENKINS_HOME/FAILED
-            TAG=`echo $BUILD_TAG | sed 's/label=//'`
-            mkdir -p $LOC
-            mv $KVM_HDA $LOC/$TAG-hda
-            mv $BUILDHOME/run $BUILDHOME/run.notactive
-            # umount image before moving it
-            $UMOUNT $BUILDMOUNT
-            mv $KVM_HDB $LOC/$TAG-hdb
-        fi
         echo RUN FAIL
         exit 1
     fi
