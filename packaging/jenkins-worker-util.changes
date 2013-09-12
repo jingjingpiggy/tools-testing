@@ -1,4 +1,14 @@
 ----------------------------------------------------------------------------
+Thu Sep 12 17:08:16 EEST 2013 olev.kartau@intel.com - 1.12.0
+
+- HDB image stays on disk, can be made bigger
+- Add KVM seed image upgrade script
+- Delete redundant UMOUNT set, it is done in common code
+- Don't use interm. variable KVM_INSTANCE_NAME, use $label directly
+- itest: Run a subset of tests
+- itest: Add dependent project to -p of run-itest-kvm.sh
+
+----------------------------------------------------------------------------
 Wed Sep  4 11:41:35 EEST 2013 olev.kartau@intel.com - 1.11.0
 
 - Use common function to get target project name in trigger_itest_verify.sh
