@@ -1,4 +1,10 @@
 ----------------------------------------------------------------------------
+Sat Sep 14 17:24:57 EEST 2013 olev.kartau@intel.com - 1.13.0
+
+- Add update-kvm-seed-image-script to Makefile to get installed
+- KVM sessions use shared HDA on disk in snapshot mode
+
+----------------------------------------------------------------------------
 Thu Sep 12 17:08:16 EEST 2013 olev.kartau@intel.com - 1.12.0
 
 - HDB image stays on disk, can be made bigger

@@ -1,6 +1,6 @@
 Name:       jenkins-worker-util
 Summary:    Utils for Otctools Jenkins worker
-Version:    1.12.0
+Version:    1.13.0
 Release:    1
 Group:      Development/Tools/Other
 License:    Intel Proprietary
