@@ -1,9 +1,11 @@
 SH_FILES := install_package run_tests otc-tools-tester-run-test-kvm.sh \
 otc-tools-tester-system-what-release.sh \
 kvm-worker.sh run-itest-kvm.sh trigger_itest_verify.sh \
-otc-tools-tester-delete-merged-jobs.sh otc-tools-update-kvm-seed-image.sh
+otc-tools-tester-delete-merged-jobs.sh otc-tools-update-kvm-seed-image.sh \
+run-mic-in-kvm.sh
 
-PY_FILES := build-package safeosc
+PY_FILES := build-package safeosc \
+pre_deployment_test_dispatcher.py pre_deployment_test_worker.py
 
 install:
 	install -d $(DESTDIR)/usr/bin
