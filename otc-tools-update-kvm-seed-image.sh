@@ -17,8 +17,12 @@ EOF
 OBS_ARCH=`echo $label|cut -f2 -d-`
 
 prepare_kvm $label additional_init
-launch_kvm
-# move updated HDA image out of tester tmpfs and mark it as new
-mv $KVM_HDA $JENKINS_HOME/kvm-seed-hda-$label
-tar --remove-files -Scf $JENKINS_HOME/kvm-seed-hda-$label.new.tar $JENKINS_HOME/kvm-seed-hda-$label
+# we need slightly different kvm call, can not use snapshot mode for hda
+# so we prepare hda copy and make own call instead of calling launch_kvm
+KVM_CPU=$(kvm_cpu_name $OBS_ARCH)
+KVM_HDA="$KVM_ROOT_ON_DISK/kvm-hda"
+cp $KVM_SEED_HDA $KVM_HDA
+qemu-kvm -name $label -M pc -cpu $KVM_CPU -m 2048 -drive file=$KVM_HDA -drive file=$KVM_HDB -vnc :$EXECUTOR_NUMBER
+# move updated HDA image to Jenkins home, renamed as new
+mv $KVM_HDA $JENKINS_HOME/kvm-seed-hda-$label.new
 copy_back_from_kvm
