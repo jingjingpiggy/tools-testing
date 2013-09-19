@@ -41,5 +41,3 @@ fi
 %{_bindir}/*
 /etc/sudoers.d
 %config /etc/sudoers.d/jenkins
-/usr/share/libvirt-templates/
-/usr/share/libvirt-templates/otc-tools-failedjob-vm-template.xml
