@@ -40,8 +40,6 @@ EOF
     mv "$SRC_TMPCOPY/$SRCDIR" $BUILDHOME/
 }
 
-OBS_REPO=`echo $label|cut -f1 -d-`
-OBS_ARCH=`echo $label|cut -f2 -d-`
 role=$OBS_REPO
 
 if [ "$role" != "Builder" ]; then

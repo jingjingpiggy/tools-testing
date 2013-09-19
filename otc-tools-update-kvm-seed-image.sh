@@ -14,8 +14,6 @@ $TARGETBIN/install_package "" "" "" "" "" ""
 EOF
 }
 
-OBS_ARCH=`echo $label|cut -f2 -d-`
-
 prepare_kvm $label additional_init
 # we need slightly different kvm call, can not use snapshot mode for hda
 # so we prepare hda copy and make own call instead of calling launch_kvm

@@ -1,6 +1,8 @@
 #!/bin/sh
 
 UMOUNT="sudo umount -l"
+OBS_REPO=`echo $label|cut -f1 -d-`
+OBS_ARCH=`echo $label|cut -f2 -d-`
 
 FUNCS_AT_EXEC=
 FUNCS_AT_EXEC_CNT=0

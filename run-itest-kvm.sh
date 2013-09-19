@@ -115,10 +115,7 @@ if [ $install_package_cnt -lt 1 ]; then
     exit 1
 fi
 
-OBS_REPO=`echo $label|cut -f1 -d-`
-OBS_ARCH=`echo $label|cut -f2 -d-`
 date
-
 prepare_kvm $label additional_init
 launch_kvm
 copy_back_from_kvm testspace/logs
