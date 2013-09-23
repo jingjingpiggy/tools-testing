@@ -1,4 +1,12 @@
 ----------------------------------------------------------------------------
+Mon Sep 23 12:29:41 UTC 2013 olev.kartau@intel.com - 1.14.0
+
+- added pre-deployment MIC testing - create images for existing KS and repo
+- Move initialization of OBS_REPO, OBS_ARCH variables to common code
+- Fix HDA seed image updater script
+- Delete five old files that are not used any more
+
+----------------------------------------------------------------------------
 Sat Sep 14 17:24:57 EEST 2013 olev.kartau@intel.com - 1.13.0
 
 - Add update-kvm-seed-image-script to Makefile to get installed
