@@ -15,11 +15,12 @@ EOF
 }
 
 prepare_kvm $label additional_init
-# we need slightly different kvm call, can not use snapshot mode for hda
-# so we prepare hda copy and make own call instead of calling launch_kvm
+# We can not use snapshot mode for hda. Prepare writable hda copy
+# and make own qemu-kvm call instead of calling launch_kvm.
 KVM_CPU=$(kvm_cpu_name $OBS_ARCH)
 KVM_HDA="$KVM_ROOT_ON_DISK/kvm-hda"
 cp $KVM_SEED_HDA $KVM_HDA
+chmod 644 $KVM_HDA
 qemu-kvm -name $label -M pc -cpu $KVM_CPU -m 2048 -drive file=$KVM_HDA -drive file=$KVM_HDB -vnc :$EXECUTOR_NUMBER
 # move updated HDA image to Jenkins home, renamed as new
 mv $KVM_HDA $JENKINS_HOME/kvm-seed-hda-$label.new
