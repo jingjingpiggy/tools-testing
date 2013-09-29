@@ -1,4 +1,10 @@
 ----------------------------------------------------------------------------
+Sun Sep 29 19:54:02 UTC 2013 olev.kartau@intel.com - 1.14.1
+
+- Create separate mgmt package for housekeeping scripts
+- Seed images updater has to make copied hda image writable
+
+----------------------------------------------------------------------------
 Mon Sep 23 12:29:41 UTC 2013 olev.kartau@intel.com - 1.14.0
 
 - added pre-deployment MIC testing - create images for existing KS and repo
