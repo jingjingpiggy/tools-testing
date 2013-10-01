@@ -1,4 +1,10 @@
 ----------------------------------------------------------------------------
+Tue Oct  1 13:03:50 UTC 2013 olev.kartau@intel.com - 1.14.2
+
+- deploy: rsync remote shell via RSYNC_RSH env. var instead of -e
+- Move read-only mode set cmd from deploy script to updater script
+
+----------------------------------------------------------------------------
 Sun Sep 29 19:54:02 UTC 2013 olev.kartau@intel.com - 1.14.1
 
 - Create separate mgmt package for housekeeping scripts
