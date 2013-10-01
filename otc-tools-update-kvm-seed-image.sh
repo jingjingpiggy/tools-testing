@@ -22,6 +22,7 @@ KVM_HDA="$KVM_ROOT_ON_DISK/kvm-hda"
 cp $KVM_SEED_HDA $KVM_HDA
 chmod 644 $KVM_HDA
 qemu-kvm -name $label -M pc -cpu $KVM_CPU -m 2048 -drive file=$KVM_HDA -drive file=$KVM_HDB -vnc :$EXECUTOR_NUMBER
-# move updated HDA image to Jenkins home, renamed as new
+# set updated image back to read-only, move to Jenkins home as .new
+chmod 444 $KVM_HDA
 mv $KVM_HDA $JENKINS_HOME/kvm-seed-hda-$label.new
 copy_back_from_kvm
