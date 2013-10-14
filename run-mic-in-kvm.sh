@@ -1,44 +1,19 @@
 #!/bin/sh -xeu
-. $(dirname $0)/kvm-worker.sh
-
 #for debug
 #JENKINS_HOME=/var/lib/jenkins
 #WORKSPACE=$JENKINS_HOME/workspace
 #BUILD_NUMBER=0
 #EXECUTOR_NUMBER=0
 #TARGETBIN=/usr/bin
-#cd $WORKSPACE/tmp
-#cd /tmp
-#label=openSUSE_12.1-i586-debug
+#cd $WORKSPACE/predeployment
+#label=openSUSE_12.3-x86_64-debug
+
+. $(dirname $0)/kvm-worker.sh
 
 additional_init() {
     # this function will be called when kvm images are ready
     # to do some additional initial work
     BUILDHOME=$1
-
-    # copy ks file into kvm image
-    cp $KS_FILE $BUILDHOME/image.ks
-
-    # add to run script that will be auto-started in Virtual machine
-    cat > $BUILDHOME/create_images << EOF
-#!/bin/bash -xu
-cd /home/build
-mkdir -p reports/ # this dir name is an interface for copy_back_from_kvm
-
-start_time=\$(date +%s)
-timeout 7200 sudo mic cr auto image.ks --logfile=reports/mic.log >reports/console.log 2>&1
-exitcode=\$?
-cost=\$(expr \$(date +%s) - \${start_time} + 1) #plus 1 to avoid expr exit 1 when result is 0
-
-echo ========= mic.log
-cat reports/mic.log
-echo ========= console.log
-cat reports/console.log
-
-exit \$exitcode
-EOF
-    chmod +x $BUILDHOME/create_images
-    cat $BUILDHOME/create_images
 
     # install packages
     i=0
@@ -60,32 +35,55 @@ $TARGETBIN/install_package "$proj" "$OBS_REPO" "$pack" "$sproj" "" ""
 EOF
     done
 
-    # create sudoers files and call create images
-    cat >> $BUILDHOME/run << EOF
-cat >> /etc/sudoers.d/mic <<EOFINNER
-ALL     ALL=(ALL) NOPASSWD: \$(which mic)
-ALL     ALL=(ALL) NOPASSWD: \$(which echo)
-
-Defaults env_keep += "http_proxy"
-Defaults env_keep += "no_proxy"
-Defaults env_keep += "https_proxy"
-Defaults env_keep += "HTTP_PROXY"
-Defaults env_keep += "HTTPS_PROXY"
-EOFINNER
-EOF
-    if [ "${http_proxy+defined}" ] && [ -n "$http_proxy" ]; then
+    # pass proxy settings into KVM
+    if [ "${http_proxy+defined}" ]; then
         echo "export http_proxy=\"$http_proxy\"" >> $BUILDHOME/run
     fi
-    if [ "${https_proxy+defined}" ] && [ -n "$https_proxy" ]; then
+    if [ "${https_proxy+defined}" ]; then
         echo "export https_proxy=\"$https_proxy\"" >> $BUILDHOME/run
     fi
-    if [ "${no_proxy+defined}" ] && [ -n "$no_proxy" ]; then
+    if [ "${no_proxy+defined}" ]; then
         echo "export no_proxy=\"$no_proxy\"" >> $BUILDHOME/run
     fi
-    cat >> $BUILDHOME/run << EOF
-su - build -c "/home/build/create_images 2>&1"
+    if [ "${HTTP_PROXY+defined}" ]; then
+        echo "export HTTP_PROXY=\"$HTTP_PROXY\"" >> $BUILDHOME/run
+    fi
+    if [ "${HTTPS_PROXY+defined}" ]; then
+        echo "export HTTPS_PROXY=\"$HTTPS_PROXY\"" >> $BUILDHOME/run
+    fi
+    if [ "${NO_PROXY+defined}" ]; then
+        echo "export NO_PROXY=\"$NO_PROXY\"" >> $BUILDHOME/run
+    fi
+
+    cat >>$BUILDHOME/run <<EOF
+/home/build/create_image
 EOF
+
+    # copy ks file into kvm image
+    cp $KS_FILE $BUILDHOME/image.ks
+
+    # create image
+    cat > $BUILDHOME/create_image << EOF
+#!/bin/sh -x
+cd /home/build
+mkdir -p reports/ # this dir name is an interface for copy_back_from_kvm
+
+start_time=\$(date +%s)
+timeout 7200 mic cr auto image.ks --logfile=reports/mic.log >reports/console.log 2>&1
+exitcode=\$?
+cost=\$(expr \$(date +%s) - \${start_time} + 1) #plus 1 to avoid expr exit 1 when result is 0
+
+echo ========= mic.log
+cat reports/mic.log
+echo ========= console.log
+cat reports/console.log
+
+exit \$exitcode
+EOF
+    chmod +x $BUILDHOME/create_image
+    cat $BUILDHOME/create_image
 }
+
 install_package_proj=
 install_package_name=
 install_package_cnt=0

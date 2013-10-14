@@ -13,7 +13,8 @@ import subprocess
 from pre_deployment_test_dispatcher import  URL, URLDirectoryService
 
 
-RUN_MIC_IN_KVM_SH = os.path.join(os.path.dirname(__file__), 'run-mic-in-kvm.sh')
+RUN_MIC_IN_KVM_SH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    'run-mic-in-kvm.sh')
 
 _CODEC = 'utf8'
 _ILLEGAL_XML_CHARS_RE = \
@@ -142,16 +143,15 @@ def parse_args():
     parser.add_argument('--password', help='password for ks url')
 
     args, remaining = parser.parse_known_args()
+    if '--' in remaining:
+        remaining = remaining[remaining.index('--')+1:]
 
-    idx = remaining.index('--')
-    args.remaining = () if idx < 0 else remaining[idx+1:]
-
-    return args
+    return args, remaining
 
 
 def main():
     '''Main'''
-    args = parse_args()
+    args, remaining = parse_args()
     url = URL(args.ksurl, args.user, args.password, '', '', '')
 
     ks_filename = os.path.basename(url.url)
@@ -161,7 +161,7 @@ def main():
 
     replace_repo_macro(url, origin, ks_filename)
 
-    result = run_mic_in_kvm(ks_filename, args.remaining)
+    result = run_mic_in_kvm(ks_filename, remaining)
     result.update({
         'classname': args.classname,
         'name': args.name,
