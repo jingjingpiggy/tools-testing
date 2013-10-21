@@ -42,7 +42,9 @@ checkout_src() {
 
 detect_case_changes() {
     # filter tests, modified and add, ignore deleted
-    git diff HEAD^ --name-status | grep .case$ | grep -v '^D' | awk '{print $2}'
+    # Only filter test case files inside 'cases/' directory;
+    # We may have manual test case in test env but not reside in 'cases/'.
+    git diff HEAD^ --name-status | grep -v '^D' | awk '{print $2}' | grep -E '^cases/.*\.case$'
 }
 
 # generate extra arguments for run-itest-kvm.sh
