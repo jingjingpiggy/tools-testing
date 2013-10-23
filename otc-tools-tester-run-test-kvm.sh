@@ -47,18 +47,23 @@ if [ "$role" != "Builder" ]; then
 fi
 
 if [ $# -lt 2 ]; then
-  echo "Usage: PACKAGE SOURCE_PROJECT [ -s NAME_SUFFIX] [-u GIT_URL]"
+  echo "Usage: PACKAGE SOURCE_PROJECT [-m KVM_MEMSZ] [-s NAME_SUFFIX] [-u GIT_URL]"
   exit 1
 fi
 
 NAME_SUFFIX=""
 GIT_URL=""
-set -- $(getopt s:u: "$@")
+set -- $(getopt s:u:m: "$@")
 while [ $# -gt 0 ]
 do
     case "$1" in
     (-u) GIT_URL=$2; shift;;
     (-s) NAME_SUFFIX=$2; shift;;
+    (-m)
+         KVM_MEMSZ=$2
+         check_kvm_args
+         shift
+         ;;
     (--) shift; break;;
     (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
     (*)  break;;

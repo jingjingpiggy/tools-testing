@@ -111,13 +111,14 @@ add_pack() {
 usage() {
     echo "Usage: $0 <KS_FILE> [options]"
     echo "    KS_FILE: create image according to this KS file"
+    echo "    -m KVM_MEMSZ: memory size of KVM session, in MBytes"
     echo "    -p project,package[,dependsproject]: package to install in vm,"
     echo "        dependsproject can be given to install dependent packages"
 }
 ########
 # Main
 ########
-set -- $(getopt hs:p: "$@")
+set -- $(getopt hs:p:m: "$@")
 while [ $# -gt 0 ]
 do
     case "$1" in
@@ -135,6 +136,11 @@ do
         shift
         ;;
     (-s) NAME_SUFFIX=$2; shift;;
+    (-m)
+         KVM_MEMSZ=$2
+         check_kvm_args
+         shift
+         ;;
     (--) shift; break;;
     (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
     (*)  break;;

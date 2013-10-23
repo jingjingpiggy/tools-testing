@@ -93,10 +93,29 @@ EOF
     date
 }
 
+check_kvm_args() {
+    KVM_MEMSZ_MAX=8192
+    if [ $KVM_MEMSZ -lt 0 ] ; then
+        echo "ERROR: requested KVM memory must be positive"
+        exit 1
+    elif [ $KVM_MEMSZ -gt $KVM_MEMSZ_MAX ] ; then
+        echo "ERROR: requested KVM memory can not exceed $KVM_MEMSZ_MAX MB"
+        exit 1
+    fi
+}
+
 launch_kvm() {
+    KVM_MEMSZ_DEFAULT=2048
     KVM_CPU=$(kvm_cpu_name $OBS_ARCH)
+
+    if [ ! "${KVM_MEMSZ+defined}" ] ; then
+        KVM_MEMSZ=$KVM_MEMSZ_DEFAULT
+    fi
     # Run tests by starting KVM, executes /home/build/run and shuts down.
-    qemu-kvm -name $label -M pc -cpu $KVM_CPU -m 2048 -drive file=$KVM_SEED_HDA,snapshot=on -drive file=$KVM_HDB -vnc :$EXECUTOR_NUMBER
+    qemu-kvm -name $label -M pc -cpu $KVM_CPU -m $KVM_MEMSZ \
+        -drive file=$KVM_SEED_HDA,snapshot=on \
+        -drive file=$KVM_HDB \
+        -vnc :$EXECUTOR_NUMBER
     date
 }
 

@@ -39,6 +39,7 @@ EOF
 usage() {
     echo "Usage: itest_env_path [options]"
     echo "    itest_env_path: path contain test cases"
+    echo "    -m KVM_MEMSZ: memory size of KVM session, in MBytes"
     echo "    -p project,package[,dependsproject]: package to install in vm,"
     echo "        dependsproject can be given to install dependent packages"
     echo "    -t test_suite: test to run, comma separated"
@@ -76,7 +77,7 @@ add_pack() {
 NAME_SUFFIX=""
 test_suite=
 
-set -- $(getopt hs:p:t: "$@")
+set -- $(getopt hs:p:t:m: "$@")
 while [ $# -gt 0 ]
 do
     case "$1" in
@@ -98,6 +99,11 @@ do
         shift
         ;;
     (-s) NAME_SUFFIX=$2; shift;;
+    (-m)
+         KVM_MEMSZ=$2
+         check_kvm_args
+         shift
+         ;;
     (--) shift; break;;
     (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
     (*)  break;;
