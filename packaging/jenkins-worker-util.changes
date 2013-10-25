@@ -1,4 +1,11 @@
 ----------------------------------------------------------------------------
+Fri Oct 25 10:47:22 UTC 2013 olev.kartau@intel.com - 1.15.0
+
+- KVM session mem.size can be given as parameter from Jenkins job
+- Pass proxy settings into autorun script inside KVM
+- Exclude case files outside of 'cases' directory
+
+----------------------------------------------------------------------------
 Fri Oct 11 19:30:49 UTC 2013 olev.kartau@intel.com - 1.14.3
 
 - check that $label is defined before use in kvm-worker.sh
