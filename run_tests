@@ -8,6 +8,11 @@ mkdir -p ~/.pylint.d/
 rm -f $reports_dir/pylint.log
 export PYTHONPATH=$src
 for path in `find $src -name \*.py`; do
+    # Do not try checking empty "__init__.py" files
+    if [ "${path##*/}" = "__init__.py" ] && ! [ -s "$path" ]; then
+        continue
+    fi
+
     pylint --output-format=parseable --reports=y --disable=I0011 $path >> $reports_dir/pylint.log
 done || :
 
