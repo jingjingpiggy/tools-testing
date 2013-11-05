@@ -8,7 +8,7 @@ mkdir -p ~/.pylint.d/
 rm -f $reports_dir/pylint.log
 export PYTHONPATH=$src
 for path in `find $src -name \*.py`; do
-    pylint --output-format=parseable --reports=y $path >> $reports_dir/pylint.log
+    pylint --output-format=parseable --reports=y --disable=I0011 $path >> $reports_dir/pylint.log
 done || :
 
 cd $src
