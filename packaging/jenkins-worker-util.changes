@@ -1,4 +1,11 @@
 ----------------------------------------------------------------------------
+Mon Nov 11 06:48:29 UTC 2013 olev.kartau@intel.com - 1.15.1
+
+- run_tests: disable pylint's I0011 (Artem Bityutskiy)
+- run_tests: do not check empty files with pylint (Artem Bityutskiy)
+- When no matched cases found, run the given cases to test (Sun Lihong)
+
+----------------------------------------------------------------------------
 Fri Oct 25 10:47:22 UTC 2013 olev.kartau@intel.com - 1.15.0
 
 - KVM session mem.size can be given as parameter from Jenkins job
