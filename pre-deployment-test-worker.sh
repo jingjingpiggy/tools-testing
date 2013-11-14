@@ -59,24 +59,25 @@ EOF
 /home/build/create_image
 EOF
 
-    # copy ks file into kvm image
-    cp $KS_FILE $BUILDHOME/image.ks
+    if [ "${COPY_TO_VM_DIR+defined}" ] && [ -d "${COPY_TO_VM_DIR}" ]; then
+        cp -r $COPY_TO_VM_DIR/* $BUILDHOME
+    fi
 
     # create image
     cat > $BUILDHOME/create_image << EOF
 #!/bin/sh -x
+export PATH=/sbin:/usr/sbin:\$PATH
 cd /home/build
 mkdir -p reports/ # this dir name is an interface for copy_back_from_kvm
 
-start_time=\$(date +%s)
-timeout 7200 mic cr auto image.ks --logfile=reports/mic.log -d -v >reports/console.log 2>&1
+date
+python -m pre_deployment_test.create_and_diff -O reports/result.txt "$IMG_BASE_URL"
 exitcode=\$?
-cost=\$(expr \$(date +%s) - \${start_time} + 1) #plus 1 to avoid expr exit 1 when result is 0
+date
 
-echo ========= mic.log
-cat reports/mic.log
-echo ========= console.log
-cat reports/console.log
+ls
+cp mic.log img.diff* reports/
+ls reports/
 
 exit \$exitcode
 EOF
@@ -109,16 +110,18 @@ add_pack() {
 }
 
 usage() {
-    echo "Usage: $0 <KS_FILE> [options]"
-    echo "    KS_FILE: create image according to this KS file"
+    echo "Usage: $0 <imgBaseURL> [options]"
+    echo "    imgBaseURL: an URL under which we can find KS file and image file"
     echo "    -m KVM_MEMSZ: memory size of KVM session, in MBytes"
     echo "    -p project,package[,dependsproject]: package to install in vm,"
     echo "        dependsproject can be given to install dependent packages"
+    echo "    -d copyToVMDir: if it's given, all files in this dir will be"
+    echo "        copied into VM build home dir"
 }
 ########
 # Main
 ########
-set -- $(getopt hs:p:m: "$@")
+set -- $(getopt hs:p:m:d: "$@")
 while [ $# -gt 0 ]
 do
     case "$1" in
@@ -141,6 +144,8 @@ do
          check_kvm_args
          shift
          ;;
+    (-d)
+        COPY_TO_VM_DIR=$2; shift;;
     (--) shift; break;;
     (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
     (*)  break;;
@@ -149,15 +154,11 @@ do
 done
 
 if [ $# -lt 1 ]; then
-    echo "KS_FILE is required" >&2
+    echo "imgDirURL is required" >&2
     exit 1
 fi
-KS_FILE=$(pwd)/$1
+IMG_BASE_URL="$1"
 shift
-if [ ! -f "$KS_FILE" ]; then
-    echo "No such file: $KS_FILE" >&2
-    exit 1
-fi
 
 if [ $install_package_cnt -lt 1 ]; then
     echo "Can't find any packages to install, please give it by -p"

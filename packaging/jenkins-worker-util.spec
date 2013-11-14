@@ -1,3 +1,4 @@
+%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 Name:       jenkins-worker-util
 Summary:    Utils for Otctools Jenkins worker
 Version:    1.15.1
@@ -9,10 +10,12 @@ URL:        https://otctools.jf.intel.com/pm/projects/tools-testing
 Source0:    %{name}-%{version}.tar.gz
 
 BuildRequires:  coreutils
+BuildRequires:  python-devel
 
-Requires:   coreutils sudo git-core make osc kvm python-urlgrabber numactl
+Requires:   coreutils sudo git-core make osc kvm numactl
 %if 0%{?suse_version} > 1220
 BuildRequires:   shadow
+Requires: gptfdisk
 %endif
 
 %description
@@ -26,6 +29,7 @@ Utils for Otctools Jenkins worker host
 %install
 rm -rf %{buildroot}
 make DESTDIR=%{buildroot} install
+%{__python} setup.py install --prefix=%{_prefix} --root=%{buildroot}
 
 %post
 if [ ! "$(getent passwd jenkins)" ]; then
@@ -44,13 +48,13 @@ fi
 %{_bindir}/otc-tools-tester-delete-merged-jobs.sh
 %{_bindir}/otc-tools-tester-run-test-kvm.sh
 %{_bindir}/otc-tools-tester-system-what-release.sh
-%{_bindir}/pre_deployment_test_dispatcher.py
-%{_bindir}/pre_deployment_test_worker.py
+%{_bindir}/pre-deployment-test-worker.sh
 %{_bindir}/run_tests
 %{_bindir}/run-itest-kvm.sh
-%{_bindir}/run-mic-in-kvm.sh
 %{_bindir}/safeosc
 %{_bindir}/trigger_itest_verify.sh
+%{python_sitelib}/pre_deployment_test/
+%{python_sitelib}/pre_deployment_test-*-py*.egg-info
 /etc/sudoers.d
 %config /etc/sudoers.d/jenkins
 
