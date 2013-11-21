@@ -1,6 +1,7 @@
 openSUSE-12.1:checkbashisms make
 openSUSE-12.2:checkbashisms make
 openSUSE-12.3:checkbashisms make
+openSUSE-13.1:checkbashisms make
 Fedora-16:rpmdevtools make
 Fedora-17:rpmdevtools make
 Fedora-18:rpmdevtools make
