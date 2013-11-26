@@ -12,7 +12,7 @@ Source0:    %{name}-%{version}.tar.gz
 BuildRequires:  coreutils
 BuildRequires:  python-devel
 
-Requires:   coreutils sudo git-core make osc kvm numactl
+Requires:  coreutils sudo git-core make osc kvm numactl util-linux sysvinit-tools tar
 %if 0%{?suse_version} > 1220
 BuildRequires:   shadow
 Requires: gptfdisk
