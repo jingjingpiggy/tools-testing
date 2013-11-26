@@ -105,6 +105,16 @@ check_kvm_args() {
 }
 
 launch_kvm() {
+    numacmd=""
+    if [ $(which numactl) ]; then
+      # Bind to CPUs and mem of one node on a NUMA system.
+      numanodes=`numactl --hardware | grep 'available:' | awk '{print $2}'`
+      if [ $numanodes -gt 1 ]; then
+        idx=$((EXECUTOR_NUMBER%numanodes))
+        numacmd="numactl --preferred=$idx --cpunodebind=$idx"
+      fi
+    fi
+
     KVM_MEMSZ_DEFAULT=2048
     KVM_CPU=$(kvm_cpu_name $OBS_ARCH)
 
@@ -112,7 +122,8 @@ launch_kvm() {
         KVM_MEMSZ=$KVM_MEMSZ_DEFAULT
     fi
     # Run tests by starting KVM, executes /home/build/run and shuts down.
-    qemu-kvm -name $label -M pc -cpu $KVM_CPU -m $KVM_MEMSZ \
+    $numacmd qemu-kvm -name $label -M pc \
+        -cpu $KVM_CPU -m $KVM_MEMSZ \
         -drive file=$KVM_SEED_HDA,snapshot=on \
         -drive file=$KVM_HDB \
         -vnc :$EXECUTOR_NUMBER
