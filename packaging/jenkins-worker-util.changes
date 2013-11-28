@@ -1,4 +1,13 @@
 ----------------------------------------------------------------------------
+Thu Nov 28 21:16:11 UTC 2013 2013 olev.kartau@intel.com - 1.16.0
+
+- Use unique MAC address for KVM tester session
+- Add few Requires which exist on typical system
+- Integrate imgdiff into pre-deployment testing (Hao Huang)
+- Use numactl to pin qemu process to CPUs and mem. of one NUMA node
+- Add test-require line for openSUSE 13.1
+
+----------------------------------------------------------------------------
 Mon Nov 11 06:48:29 UTC 2013 olev.kartau@intel.com - 1.15.1
 
 - run_tests: disable pylint's I0011 (Artem Bityutskiy)
