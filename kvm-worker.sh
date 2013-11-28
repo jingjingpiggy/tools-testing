@@ -121,9 +121,11 @@ launch_kvm() {
     if [ ! "${KVM_MEMSZ+defined}" ] ; then
         KVM_MEMSZ=$KVM_MEMSZ_DEFAULT
     fi
+
+    netcmd=$(kvm_netcmd)
     # Run tests by starting KVM, executes /home/build/run and shuts down.
     $numacmd qemu-kvm -name $label -M pc \
-        -cpu $KVM_CPU -m $KVM_MEMSZ \
+        -cpu $KVM_CPU -m $KVM_MEMSZ $netcmd \
         -drive file=$KVM_SEED_HDA,snapshot=on \
         -drive file=$KVM_HDB \
         -vnc :$EXECUTOR_NUMBER
@@ -175,4 +177,12 @@ kvm_cpu_name() {
  else
    echo "core2duo"
  fi
+}
+
+kvm_netcmd() {
+  # create unique MAC address from our own static part, node IP, slot number
+  # node IP last octet comes from SSH_CONNECTION="10.237.71.24 44908 10.237.71.173 22"
+  nodenum=`echo "$SSH_CONNECTION" | awk '{print $3}' | awk -F\. '{printf("%02x", $4);}'`
+  slotnum=`printf "%02x" $((EXECUTOR_NUMBER%256))`
+  echo "-net nic,macaddr=52:54:78:87:$nodenum:$slotnum -net user"
 }
