@@ -64,8 +64,9 @@ EOF
     fi
 
     # create image
+    set +x # avoid password print to console
     cat > $BUILDHOME/create_image << EOF
-#!/bin/sh -x
+#!/bin/sh
 export PATH=/sbin:/usr/sbin:\$PATH
 cd /home/build
 mkdir -p reports/ # this dir name is an interface for copy_back_from_kvm
@@ -79,13 +80,15 @@ exitcode=\$?
 date
 
 ls
-cp mic.log img.diff* reports/
+[ -f mic.log ] && cp mic.log reports/
+ls img.diff* >/dev/null && cp img.diff* reports/
+ls *.ks >/dev/null && cp *.ks reports/
 ls reports/
 
 exit \$exitcode
 EOF
+    set -x
     chmod +x $BUILDHOME/create_image
-    cat $BUILDHOME/create_image
 }
 
 install_package_proj=
@@ -124,6 +127,7 @@ usage() {
 ########
 # Main
 ########
+set +x
 set -- $(getopt hs:p:m:d: "$@")
 while [ $# -gt 0 ]
 do
@@ -161,6 +165,7 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 IMG_BASE_URL="$1"
+set -x
 shift
 
 if [ $install_package_cnt -lt 1 ]; then

@@ -5,7 +5,7 @@ import time
 import base64
 import urllib
 import urllib2
-from subprocess import check_call
+from subprocess import check_call, CalledProcessError
 from urlparse import urlsplit, urlunsplit
 from collections import namedtuple
 
@@ -101,13 +101,21 @@ class URL(namedtuple("URL", "href user passwd full netloc path basename")):
     def download(self, localfile, verbosity=1):
         "Download this to local file"
         vopt = {0: '-q', 1: '-nv', 2: '-v'}.get(verbosity, 1)
-        cmd = ['wget', vopt, '-O', localfile]
+        cmd = ['wget', vopt, '-O', localfile, '--no-check-certificate']
         if self.user:
             cmd.extend(['--user', self.user])
         if self.passwd:
             cmd.extend(['--password', self.passwd])
         cmd.append(self.href)
-        return check_call(cmd)
+        try:
+            return check_call(cmd)
+        except CalledProcessError as err:
+            # remove password from command line
+            if '--password' in err.cmd:
+                idx = err.cmd.index('--password')
+                err.cmd[idx+1] = 'xxx'
+                raise err
+            raise
 
     #-------------------------------
     def _replace_path(self, path):

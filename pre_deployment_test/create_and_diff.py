@@ -11,7 +11,7 @@ import platform
 import argparse
 from subprocess import call, check_output, CalledProcessError
 
-from .imgutil import URL, Snapshot, Image, is_compressive_file, uncompress
+from .imgutil import URL, Snapshot, Image, is_image_file, uncompress
 
 
 logger = logging.getLogger('pre_deployment_test_mic')
@@ -34,9 +34,9 @@ def find_local_image():
     path = 'mic-output'
     if not os.path.exists(path):
         return None
-    img = [ os.path.join(path, i) for i in os.listdir(path)
-            if is_compressive_file(i) ]
-    return img[0] if img else None
+    for name in os.listdir(path):
+        if is_image_file(name):
+            return os.path.join(path, name)
 
 
 def parse_args():

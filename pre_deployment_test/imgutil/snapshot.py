@@ -56,6 +56,14 @@ class Snapshot(object):
                 return cls(base)
 
 
+def is_image_file(name):
+    "Returns true if name is image file"
+    _, ext = os.path.splitext(name)
+    if ext.lower() in ('.img', '.usbimg', '.raw', '.iso'):
+        return True
+    return is_compressive_file(name)
+
+
 class Image(object):
     "An Image"
     def __init__(self, basedir):
@@ -77,7 +85,7 @@ class Image(object):
         else:
             ksurl = None
 
-        img = [i for i in files if is_compressive_file(i.href)]
+        img = [i for i in files if is_image_file(i.href)]
         if len(img) > 1:
             raise Exception("More than one image files in image dir:%s:%s"
                 % (str(self.baseurl), ','.join(img)))
@@ -85,7 +93,6 @@ class Image(object):
             img = img[0]
         else:
             img = None
-
         return ksurl, img
 
     def download_image(self, localfile):
@@ -111,20 +118,29 @@ class Image(object):
 
     def _interpolate(self, kscontent, baseurl):
         "Interpolate macro BUILDID in KS file"
+        def hack_for_pc_repos(url):
+            """Change pc repos"""
+            u = URL(url)
+            if u.path.startswith('/pc/repos/'):
+                # We don't have access to the first link
+                # but we use the second as alternative
+                return url.replace('/pc/repos/', '/3rdparty/repos/pc/')
+            return url
+
         def update(line):
             '''replace BUILD_ID and insert user/passwd'''
             if line.find('@BUILD_ID@') > 0:
                 line = re.sub(r'(--baseurl=).*@BUILD_ID@',
-                              r'\1%s' % str(baseurl),
+                              r'\1%s' % baseurl.full,
                               line)
-
-            # we insert user/pass here instead of using baseurl.full
-            # since repo can't support escaped form of password
-            if self.ksurl.user and self.ksurl.passwd:
-                line = re.sub(
-                  r'(--baseurl=.*://)',
-                  r'\1%s:%s@' % (self.ksurl.user, self.ksurl.passwd),
-                  line)
+            elif line.find('--baseurl=') > 0:
+                mres = re.search(r'--baseurl=([^ ]+)', line)
+                if mres:
+                    urlinks = hack_for_pc_repos(mres.group(1))
+                    url = URL(urlinks, baseurl.user, baseurl.passwd)
+                    line = re.sub(r'(--baseurl=)[^ ]+',
+                                  r'\1%s' % url.full,
+                                  line)
             return line
 
         updated = [ update(line)
