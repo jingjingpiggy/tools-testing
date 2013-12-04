@@ -10,7 +10,7 @@ additional_init() {
     # we re-use first part of install_package that runs "update all",
     # that is all we want this time
     cat >> $BUILDHOME/run << EOF
-$TARGETBIN/install_package "" "" "" "" "" ""
+$TARGETBIN/install_package "" "" "" "" "" "" ""
 EOF
 }
 

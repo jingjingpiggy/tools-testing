@@ -27,7 +27,7 @@ additional_init() {
         # args for install_package:
         # (project, repo, packages, sproject, testreq_packages, extra_repos)
         cat >>$BUILDHOME/run <<EOF
-$TARGETBIN/install_package "$proj" "$OBS_REPO" "$pack" "$sproj" "" ""
+$TARGETBIN/install_package "$proj" "$OBS_REPO" "$pack" "$sproj" "" "" ""
 EOF
     done
 

@@ -25,7 +25,7 @@ if [ -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
     EXTRA_REPOS=\`egrep "^(\$OSREL|\$OSREL2)\\s*:" /home/build/$SRCDIR/packaging/.extra-repos | cut -d':' -f 2-\`
   fi
 fi
-$TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES" "\$EXTRA_REPOS"
+$TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES" "\$EXTRA_REPOS" ""
 su - build -c "timeout 60m $TARGETBIN/run_tests /home/build/$SRCDIR /home/build/reports/ 2>&1"
 EOF
 

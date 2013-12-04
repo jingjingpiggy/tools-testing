@@ -57,6 +57,7 @@ packages="$3"
 sproject="$4"
 testreq_packages="$5"
 extra_repos="$6"
+noupd="$7"
 
 if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
 # Ubuntu
@@ -66,7 +67,7 @@ if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
    [ -n "$sproject" ] && echo "deb http://download.otctools.jf.intel.com/$sproject/$repo/ /" >> $srclist
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" $srclist
    apt-get update
-   apt-get upgrade -y --force-yes
+   [ "$noupd" != "noupdate" ] && apt-get upgrade -y --force-yes
    install_pkgs "apt-get install -y --force-yes" "$testreq_packages" "$packages"
 elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
 # OpenSuse
@@ -76,7 +77,7 @@ elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
    [ -n "$sproject" ] && zypper ar -fG http://download.otctools.jf.intel.com/$sproject/$repo/ $reponame
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" ""
    zypper --non-interactive ref
-   zypper --non-interactive up
+   [ "$noupd" != "noupdate" ] && zypper --non-interactive up
    install_pkgs "zypper --non-interactive install" "$testreq_packages" "$packages"
 elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d /etc/yum.repos.d ] ; then
 # Fedora
@@ -88,6 +89,6 @@ elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d /etc/yum.repos.d ] ; then
    [ -n "$sproject" ] && create_rpm_repo "tools" $url
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" ""
    yum -y clean all
-   yum -y update
+   [ "$noupd" != "noupdate" ] && yum -y update
    install_pkgs "yum -y install" "$testreq_packages" "$packages"
 fi
