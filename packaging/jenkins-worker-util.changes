@@ -1,5 +1,11 @@
 ----------------------------------------------------------------------------
-Thu Nov 28 21:16:11 UTC 2013 2013 olev.kartau@intel.com - 1.16.0
+Tue Dec 17 08:02:50 UTC 2013 olev.kartau@intel.com - 1.17.0
+
+- Add 7th option to install_package for skipping pkg updates
+- modify /etc/mic/mic.conf to refer directories in /home/build (Huanhuan Li)
+
+----------------------------------------------------------------------------
+Thu Nov 28 21:16:11 UTC 2013 olev.kartau@intel.com - 1.16.0
 
 - Use unique MAC address for KVM tester session
 - Add few Requires which exist on typical system
