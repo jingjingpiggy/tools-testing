@@ -76,7 +76,8 @@ elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
    reponame="tools-`echo \"$sproject\" | tr -d '[:punct:][:space:]'`"
    [ -n "$sproject" ] && zypper ar -fG http://download.otctools.jf.intel.com/$sproject/$repo/ $reponame
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" ""
-   zypper --non-interactive ref
+   # zypper exit nonzero if all repositories are up to date
+   zypper --non-interactive ref || true
    [ "$noupd" != "noupdate" ] && zypper --non-interactive up
    install_pkgs "zypper --non-interactive install" "$testreq_packages" "$packages"
 elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d /etc/yum.repos.d ] ; then
