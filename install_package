@@ -30,6 +30,15 @@ install_pkgs() {
  fi
 }
 
+check_suse_duplicate_repo_add() {
+ baseurl=$1
+ reponame=$2
+ if ! zypper repos -u | grep "$baseurl" > /dev/null; then
+     [ -n "$(zypper lr | grep "$reponame")" ] && reponame=$reponame"$(date +%s)"
+     zypper ar -fG $baseurl $reponame
+ fi
+}
+
 add_extra_repos() {
  r_on=$1
  e_repos=$2
@@ -64,7 +73,7 @@ if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
    run_on="ubuntu"
    srclist="/etc/apt/sources.list.d/Tools.list"
    [ -n "$project" ] && echo "deb http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ /" >  $srclist
-   [ -n "$sproject" ] && echo "deb http://download.otctools.jf.intel.com/$sproject/$repo/ /" >> $srclist
+   [ -n "$sproject" -a "/home:/tester:/$project" != "$sproject" ] && echo "deb http://download.otctools.jf.intel.com/$sproject/$repo/ /" >> $srclist
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" $srclist
    apt-get update
    [ "$noupd" != "noupdate" ] && apt-get upgrade -y --force-yes
@@ -72,9 +81,15 @@ if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
 elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
 # OpenSuse
    run_on="opensuse"
-   [ -n "$project" ] && zypper ar -fG http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ $project
+   if [ -n "$project" ]; then
+       baseurl="http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/"
+       check_suse_duplicate_repo_add $baseurl $project
+   fi
    reponame="tools-`echo \"$sproject\" | tr -d '[:punct:][:space:]'`"
-   [ -n "$sproject" ] && zypper ar -fG http://download.otctools.jf.intel.com/$sproject/$repo/ $reponame
+   if [ -n "$sproject" ]; then
+       baseurl="http://download.otctools.jf.intel.com/$sproject/$repo/"
+       check_suse_duplicate_repo_add $baseurl $reponame
+   fi
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" ""
    # zypper exit nonzero if all repositories are up to date
    zypper --non-interactive ref || true
