@@ -9,13 +9,57 @@
 #cd $WORKSPACE/run-itest
 #label=openSUSE_12.1-i586-debug
 
+outward_proxy_prepare() {
+    ###### pass proxy settings into KVM
+    if [ "${http_proxy+defined}" ]; then
+        echo "export http_proxy=\"$http_proxy\"" >> $BUILDHOME/run
+    fi
+    if [ "${https_proxy+defined}" ]; then
+        echo "export https_proxy=\"$https_proxy\"" >> $BUILDHOME/run
+    fi
+    if [ "${no_proxy+defined}" ]; then
+        echo "export no_proxy=\"$no_proxy\"" >> $BUILDHOME/run
+    fi
+    if [ "${HTTP_PROXY+defined}" ]; then
+        echo "export HTTP_PROXY=\"$HTTP_PROXY\"" >> $BUILDHOME/run
+    fi
+    if [ "${HTTPS_PROXY+defined}" ]; then
+        echo "export HTTPS_PROXY=\"$HTTPS_PROXY\"" >> $BUILDHOME/run
+    fi
+    if [ "${NO_PROXY+defined}" ]; then
+        echo "export NO_PROXY=\"$NO_PROXY\"" >> $BUILDHOME/run
+    fi
+
+    ##### enable proxy on openSUSE ####
+    cat >> $BUILDHOME/run <<EOF
+if [ -e /etc/sysconfig/proxy ]; then
+sed -i 's/PROXY_ENABLED=.*/PROXY_ENABLED="yes"/' /etc/sysconfig/proxy
+fi
+EOF
+    ##### enable proxy on fedora/centos ####
+    cat >> $BUILDHOME/run <<EOF
+sed -i '/^proxy=_none_/d' $TARGETBIN/install_package
+EOF
+}
+
+
 additional_init() {
     BUILDHOME=$1
+    distro=$(echo $label|cut -d'_' -f 1|tr [:upper:] [:lower:])
 
     i=0
     while [ $i -lt $install_package_cnt ]; do
         pack=${install_package_name[$i]}
         projs=${install_package_proj[$i]}
+        extra_repo=${install_package_extra_r[$i]}
+        if [ -n "$extra_repo" ]; then
+            outward_proxy_prepare
+            if [ "$distro" = "ubuntu" ]; then
+                extra_repo="deb $extra_repo/$OBS_REPO /"
+            else
+                extra_repo="$extra_repo/$OBS_REPO"
+            fi
+        fi
         i=$(expr $i + 1)
 
         proj=$(echo $projs|awk -F'|' '{print $1}')
@@ -23,7 +67,7 @@ additional_init() {
         # args for install_package:
         # (project, repo, packages, sproject, testreq_packages, extra_repos)
         cat >>$BUILDHOME/run <<EOF
-$TARGETBIN/install_package "$proj" "$OBS_REPO" "$pack" "$sproj" "" "" ""
+$TARGETBIN/install_package "$proj" "$OBS_REPO" "$pack" "$sproj" "" "$extra_repo" ""
 EOF
     done
 
@@ -47,10 +91,12 @@ usage() {
 
 install_package_proj=
 install_package_name=
+install_package_extra_r=
 install_package_cnt=0
 add_pack() {
     proj=$1
     pack=$2
+    extra_r=$3
 
     # overwrite project if package exists
     i=0
@@ -58,6 +104,7 @@ add_pack() {
         packi=${install_package_name[$i]}
         if [ $packi = $pack ]; then
             install_package_proj[$i]=$proj
+            install_package_extra_r[$i]=$extra_r
             return
         fi
         i=$(expr $i + 1)
@@ -66,6 +113,7 @@ add_pack() {
     # append new pair if package doesn't exist
     install_package_proj[$install_package_cnt]=$proj
     install_package_name[$install_package_cnt]=$pack
+    install_package_extra_r[$install_package_cnt]=$extra_r
     install_package_cnt=$(expr $install_package_cnt + 1)
 }
 
@@ -83,14 +131,15 @@ do
     (-h) usage; exit 0;;
     (-p)
         nargs=$(echo $2|awk -F',' '{print NF}')
-        if [ $nargs -lt 2 ] || [ $nargs -gt 3 ]; then
+        if [ $nargs -lt 2 ] || [ $nargs -gt 4 ]; then
             echo "Bad package name and project name to install:$2"
             exit 1
         fi
         proj=$(echo $2|awk -F',' '{print $1}')
         pack=$(echo $2|awk -F',' '{print $2}')
         depends_proj=$(echo $2|awk -F',' '{print $3}')
-        add_pack "$proj|$depends_proj" $pack
+        extra_repo=$(echo $2|awk -F',' '{print $4}')
+        add_pack "$proj|$depends_proj" $pack "$extra_repo"
         shift
         ;;
     (-t)
