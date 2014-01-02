@@ -1,4 +1,11 @@
 ----------------------------------------------------------------------------
+Thu Jan  2 06:53:25 UTC 2014 olev.kartau@intel.com - 1.18.0
+
+- Cover images of PC product in pre-deployment test (Huang Hao)
+- Check whether repo name already exists (Sun Lihong)
+- Prevent from accidental exiting of zypper (Huang Hao)
+
+----------------------------------------------------------------------------
 Tue Dec 17 08:02:50 UTC 2013 olev.kartau@intel.com - 1.17.0
 
 - Add 7th option to install_package for skipping pkg updates
