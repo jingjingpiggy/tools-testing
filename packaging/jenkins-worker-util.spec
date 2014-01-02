@@ -52,7 +52,7 @@ fi
 %{_bindir}/run_tests
 %{_bindir}/run-itest-kvm.sh
 %{_bindir}/safeosc
-%{_bindir}/trigger_itest_verify.sh
+%{_bindir}/trigger_itest_verify.py
 %{python_sitelib}/pre_deployment_test/
 %{python_sitelib}/pre_deployment_test-*-py*.egg-info
 /etc/sudoers.d

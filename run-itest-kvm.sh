@@ -20,10 +20,6 @@ additional_init() {
 
         proj=$(echo $projs|awk -F'|' '{print $1}')
         sproj=$(echo $projs|awk -F'|' '{print $2}')
-        if [ -z "$sproj" ];then
-            sproj="$proj"
-            proj=""
-        fi
         # args for install_package:
         # (project, repo, packages, sproject, testreq_packages, extra_repos)
         cat >>$BUILDHOME/run <<EOF
