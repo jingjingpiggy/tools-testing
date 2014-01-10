@@ -195,3 +195,17 @@ kvm_netcmd() {
   p3x=`printf "%02x" $pid`
   echo "-net nic,macaddr=52:$nodenum:$slotnum:$p1x:$p2x:$p3x -net user"
 }
+
+setenv_to_run() {
+    #set defined env variable in script run
+    if [ "$#" -gt "0" ]; then
+        for val in "$@"
+        do
+            local name=$val
+            eval val=\${$val=undefined}
+            if [ "$val" != "undefined" ]; then
+                echo "export $name=\"$val\"" >> $BUILDHOME/run
+            fi
+        done
+    fi
+}

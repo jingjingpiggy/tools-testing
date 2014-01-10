@@ -16,24 +16,7 @@ additional_init() {
     BUILDHOME=$1
     distro=$(echo $label|cut -d'_' -f 1|tr [:upper:] [:lower:])
     # pass proxy settings into KVM
-    if [ "${http_proxy+defined}" ]; then
-        echo "export http_proxy=\"$http_proxy\"" >> $BUILDHOME/run
-    fi
-    if [ "${https_proxy+defined}" ]; then
-        echo "export https_proxy=\"$https_proxy\"" >> $BUILDHOME/run
-    fi
-    if [ "${no_proxy+defined}" ]; then
-        echo "export no_proxy=\"$no_proxy\"" >> $BUILDHOME/run
-    fi
-    if [ "${HTTP_PROXY+defined}" ]; then
-        echo "export HTTP_PROXY=\"$HTTP_PROXY\"" >> $BUILDHOME/run
-    fi
-    if [ "${HTTPS_PROXY+defined}" ]; then
-        echo "export HTTPS_PROXY=\"$HTTPS_PROXY\"" >> $BUILDHOME/run
-    fi
-    if [ "${NO_PROXY+defined}" ]; then
-        echo "export NO_PROXY=\"$NO_PROXY\"" >> $BUILDHOME/run
-    fi
+    setenv_to_run http_proxy https_proxy no_proxy HTTP_PROXY HTTPS_PROXY NO_PROXY
     # install packages
     i=0
     while [ $i -lt $install_package_cnt ]; do
