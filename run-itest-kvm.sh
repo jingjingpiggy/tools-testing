@@ -71,6 +71,16 @@ $TARGETBIN/install_package "$proj" "$OBS_REPO" "$pack" "$sproj" "" "$extra_repo"
 EOF
     done
 
+    if [ "${tz_user_passwd+defined}" ]; then
+        #It's hack to insert user and passwd in this way, only use this method
+        #in the intermediate period to test liveusb/livecd related ks, and will
+        #abandon it once new itest templates are applied. And the passwd used
+        #here should be encoded passwd.
+        cat >>$BUILDHOME/run << EOF
+sed -i 's!https\:\/\/download.tz.jf.intel.com!https\:\/\/$tz_user_passwd\@download.tz.jf.intel.com!g' $itest_env_path/fixtures/ks_files/*.ks
+EOF
+    fi
+
     cat >>$BUILDHOME/run <<EOF
 sed -i 's!^tmpdir\s*=.*!tmpdir=/home/build/tmp/mic!'  /etc/mic/mic.conf
 sed -i 's!^cachedir\s*=.*!cachedir=/home/build/tmp/mic/cache!' /etc/mic/mic.conf
