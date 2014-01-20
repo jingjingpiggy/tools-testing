@@ -1,4 +1,12 @@
 ----------------------------------------------------------------------------
+ Mon Jan 20 11:18:58 UTC 2014 olev.kartau@intel.com - 1.19.0
+
+- Insert user and passwd to 'liveusb/livecd' related ks (Sun Lihong)
+- Make it be able to install from tizen.org (Sun Lihong)
+- reconstruct trigger_itest_verify.sh to python script (Sun Lihong)
+- Change mic tmp image path to "/home/build" to utilize space (Huanhuan Li)
+
+----------------------------------------------------------------------------
 Thu Jan  2 06:53:25 UTC 2014 olev.kartau@intel.com - 1.18.0
 
 - Cover images of PC product in pre-deployment test (Huang Hao)
