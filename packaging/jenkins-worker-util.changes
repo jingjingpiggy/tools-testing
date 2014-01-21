@@ -1,5 +1,10 @@
 ----------------------------------------------------------------------------
- Mon Jan 20 11:18:58 UTC 2014 olev.kartau@intel.com - 1.19.0
+Mon Jan 20 11:18:58 UTC 2014 olev.kartau@intel.com - 1.19.1
+
+- Only change tmp dir when the file '/etc/mic/mic.conf' exist (Sun Lihong)
+
+----------------------------------------------------------------------------
+Mon Jan 20 11:18:58 UTC 2014 olev.kartau@intel.com - 1.19.0
 
 - Insert user and passwd to 'liveusb/livecd' related ks (Sun Lihong)
 - Make it be able to install from tizen.org (Sun Lihong)
