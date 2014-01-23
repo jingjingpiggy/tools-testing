@@ -23,7 +23,7 @@ CHAINS = [
 BRANCH2SUBPROJ = {
      "master": "",
       "devel": "Devel",
-    "release": "Pre-Release",
+    "release": "Pre-release",
 }
 
 #conf.py defines your own TESTER_PROJECT, CHAINS, BRANCH2SUBPROJ
