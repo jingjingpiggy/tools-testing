@@ -1,65 +1,174 @@
 #!/usr/bin/env python
 "This script aggregate results from subprojects and make a summary"
+
 import argparse
-from collections import defaultdict
+import datetime
+from collections import defaultdict as dd, namedtuple
+
+from jinja2 import Environment, PackageLoader
 
 from .imgutil import Snapshot, URL
 
 
-def aggregate(results):
-    """Aggregate all results like this:
-    Image: mobile
-    ImageType: loop
-    Result: Regression
-    MicVersion: 0.22
-    Distribution: openSUSE-12.3-x86_64
-    KSURL: http://xxx/pub/mirrors/tizen/snapshots/tizen/mobile/tizen_20131114.2/images/mobile/mobile.ks
-    SnapshotURL: http://xxx/pub/mirrors/tizen/snapshots/tizen/mobile/tizen_20131114.2
-    LogURL: xx
-    """
-    if not results:
-        return
-    micver = results[0]['MicVersion']
-    rtype = lambda i: 'Diff' if i.startswith('Diff') else i
+level3dict = lambda : dd(dict)
+level4dict = lambda : dd(level3dict)
+level5dict = lambda : dd(level4dict)
+level6dict = lambda : dd(level5dict)
 
-    count = defaultdict(int)
-    for i in results:
-        count[rtype(i['Result'])] += 1
 
-    def cmp_result(res1, res2):
-        "compare result"
-        order = {'Regression': 1,
-            'Diff': 2,
-            'Repeat': 2,
-            'Fixed': 3,
-            'Passed': 4,
-            }
-        ret = cmp(order.get(rtype(res1['Result'])),
-            order.get(rtype(res2['Result'])))
-        if ret == 0:
-            return cmp(res1['SnapshotURL'], res2['SnapshotURL'])
-        return ret
-    results.sort(cmp_result)
+def summary(result_list):
+    assert len(result_list) > 0
+    mic_version = result_list[0]['MicVersion'].split('(')[0]
+    result_count = len(result_list)
+    pass_count = failed_count = repeat_count = fixed_count = 0
+    for res in result_list:
+        result = res['Result'].strip()
+        if result == 'Passed' or result.lower().find('diff') != -1:
+            pass_count += 1
+        elif result == 'Regression':
+            failed_count += 1
+        elif result == 'Fixed':
+            fixed_count += 1
+        elif result == 'Repeat':
+            repeat_count += 1
 
-    print '#'*50
-    print '##'
-    print '##', 'Aggregate results of PreDeployment testing'
-    print '##'
-    print '#'*50
-    print 'Summary:', ' '.join(['%s(%d)'%(k, v) for k, v in count.items()])
-    print 'Version:', micver
-    print
-    for i in results:
-        print '[%s] %s: %s' % (i['Result'], i['Image'], i['Reason'])
-        shot = Snapshot(URL(i['SnapshotURL']))
-        print 'Infra:', shot.infra
-        print 'Product:', shot.product
-        print 'Snapshot:', shot.baseurl
-        print 'KS:', i['KSURL']
-        print 'Log:', i['LogURL']
-        print
-    print '#'*50
+    return {
+        'Version': mic_version,
+        'Report Time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+        'Total': result_count,
+        'Passed': pass_count,
+        'Failed': failed_count,
+        'Repeat': repeat_count,
+        'Fixed': fixed_count,
+        }
 
+
+def detail(result_list):
+    TD = namedtuple('TD', 'text rows_span title href css')
+
+    def make_column_first_matrix(data):
+        def _get_value(name, value, target):
+            for res in result_list:
+                if res[name] == value:
+                    return res[target]
+
+        def _css(result):
+            res = result['Result']
+            if res in ('Passed', 'Fixed'):
+                return 'success'
+            if res in ('Regression',):
+                return 'failed'
+            return 'warning'
+
+        cmatrix = dd(list) # column first matrix
+
+        # Column 1: Infrastructure
+        for infra in data:
+            td = TD(infra, count(infra), '', '', '')
+            cmatrix[0].append(td)
+
+        # Column 2: Product
+        for infra , d1 in data.items():
+            for product in d1:
+                td = TD(product, count(infra, product), '', '', '')
+                cmatrix[1].append(td)
+
+        # Column 3: Snapshot
+        for infra, d1 in data.items():
+            for pro, d2 in d1.items():
+                for snap in d2:
+                    snap_link = _get_value('BuildID', snap, 'SnapshotURL')
+                    td = TD(snap, count(infra, pro, snap), '', snap_link, '')
+                    cmatrix[2].append(td)
+
+        # Column 4: Image
+        for infra, d1 in data.items():
+            for pro, d2 in d1.items():
+                for snap, d3 in d2.items():
+                    for img, d4 in d3.items():
+                        link = _get_value('Image', img, 'KSURL')
+                        td = TD(img, 1, '', link, '')
+                        cmatrix[3].append(td)
+
+
+        # Column 5+: All distributions
+        for i, dist in enumerate(distros):
+            for infra, d1 in data.items():
+                for pro, d2 in d1.items():
+                    for snap, d3 in d2.items():
+                        for img, d4 in d3.items():
+                            result = d4.get(dist)
+                            if result:
+                                td = TD(result['Result'],
+                                        1,
+                                        result['Reason'],
+                                        result['LogURL'],
+                                        _css(result))
+                            else:
+                                td = TD('', 1, '', '', '')
+                            cmatrix[4+i].append(td)
+        return cmatrix
+
+    def transpose_column_first_to_row_first(cmatrix):
+        rmatrix = dd(dict) # row first matrix
+        for j, col in cmatrix.items():
+            i = 0
+            for td in col:
+                rmatrix[i][j] = td
+                i += td.rows_span
+        return rmatrix
+
+    def make_multi_layers_dict():
+        distros = set()
+        data = level6dict()
+        for res in result_list:
+            infra = res['Infra']
+            product = res['Product']
+            buildid = res['BuildID']
+            image = res['Image']
+            distro = res['Distribution']
+
+            distros.add(distro)
+            data[infra][product][buildid][image][distro] = res
+
+        distros = sorted(distros)
+        return data, distros
+
+    def make_row_count_helper(data):
+        return [(infra, product, buildid, image)
+            for infra, d2 in data.iteritems()
+                for product, d3 in d2.iteritems()
+                    for buildid, d4 in d3.iteritems()
+                       for image in d4]
+
+    # main start -----------------------
+    data, distros = make_multi_layers_dict()
+
+    helper = make_row_count_helper(data)
+    def count(*key):
+        return sum([ (row[:len(key)] == key) for row in helper ])
+
+    thead = ['Infrastructure',
+             'Product',
+             'Snapshot',
+             'Image'] + distros
+    cmatrix = make_column_first_matrix(data)
+    tbody = transpose_column_first_to_row_first(cmatrix)
+
+    return {
+        'thead': thead,
+        'tbody': tbody,
+        }
+
+
+def html_report(results):
+    env = Environment(loader=PackageLoader('pre_deployment_test', 'templates'))
+    template = env.get_template('report.html')
+    html = template.render(
+        summary=summary(results),
+        **detail(results))
+    with open('index.html', 'w') as fobj:
+        fobj.write(html)
 
 def load(filename):
     "Load reuslt from filename"
@@ -81,9 +190,7 @@ def main():
     "Main"
     args = parse_args()
     results = [ load(i) for i in args.results ]
-    aggregate(results)
-
-
+    html_report(results)
 
 if __name__ == '__main__':
     main()

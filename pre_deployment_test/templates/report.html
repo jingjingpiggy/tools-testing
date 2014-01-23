@@ -1,0 +1,63 @@
+<html>
+    <head>
+        <title>MIC Pre-deployment Testing Report</title>
+        <style type="text/css">
+            .failed, .failed a { color: red }
+            .success, .success a { color: darkseagreen }
+            .warning, .warning a { color: wheat }
+            table {
+                border-collapse:collapse;
+                margin-bottom: 1em;
+            }
+            th { background-color: #F3F3F3 }
+            td, th {
+                border: 1px solid grey;
+                padding: 3px
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Pre-deployment Testing Report</h1>
+        <ul>
+            <li>Version: {{summary.Version}}</li>
+            <li>Report Time: {{summary["Report Time"]}}</li>
+            {% for name, value in summary.items() %}
+                {% if name not in ("Version", "Report Time") %}
+                    <li>{{name}}: {{value}}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+        <table>
+            <tr>
+                {% for text in thead %}
+                    <th algin='center'>{{ text }}</th>
+                {% endfor %}
+            </tr>
+            {% for i, row in tbody.items() %}
+                <tr>
+                {% for j, td in row.items() %}
+                    <td
+                    {% if td.rows_span > 1 %}
+                        rowspan="{{td.rows_span}}"
+                    {% endif %}
+
+                    {% if td.title %}
+                        title="{{td.title}}"
+                    {% endif %}
+
+                    {% if td.css %}
+                       class="{{td.css}}"
+                    {% endif %}
+
+                    {% if td.href %}
+                        ><a href="{{td.href}}">{{td.text}}</a>
+                    {% else %}
+                        >{{td.text}}
+                    {% endif %}
+                    </td>
+                {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
