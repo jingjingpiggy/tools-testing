@@ -87,7 +87,9 @@ if [ -e /etc/mic/mic.conf ]; then
     sed -i 's!^cachedir\s*=.*!cachedir=/home/build/tmp/mic/cache!' /etc/mic/mic.conf
     sed -i 's!^rootdir\s*=.*!rootdir=/home/build/tmp/mic-bootstrap!' /etc/mic/mic.conf
 fi
-su - build -c "cd $itest_env_path; runtest -vv $test_suite 2>&1"
+cd /home/build
+su - build -c "runtest -vv --test-project-path=$itest_env_path $test_suite 2>&1"
+ls *.xml >/dev/null 2>&1 && cp -v *.xml reports/
 EOF
 }
 
@@ -184,4 +186,4 @@ fi
 date
 prepare_kvm $label additional_init
 launch_kvm
-copy_back_from_kvm testspace/logs
+copy_back_from_kvm
