@@ -1,4 +1,11 @@
 ----------------------------------------------------------------------------
+Tue Feb 11 12:05:34 UTC 2014 olev.kartau@intel.com - 1.20.0
+
+- Add arguments of runtest (Huang Hao)
+- Update report of pre-deployment testing (Huanhuan Li)
+- Change 'Pre-Release' to 'Pre-release' (Sun Lihong)
+
+----------------------------------------------------------------------------
 Mon Jan 20 11:18:58 UTC 2014 olev.kartau@intel.com - 1.19.1
 
 - Only change tmp dir when the file '/etc/mic/mic.conf' exist (Sun Lihong)
