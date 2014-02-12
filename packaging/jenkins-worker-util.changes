@@ -1,4 +1,10 @@
 ----------------------------------------------------------------------------
+Wed Feb 12 09:12:01 UTC 2014 olev.kartau@intel.com - 1.20.1
+
+- Fix bug that run-itest-kvm won't copy xunit file (Huang Hao)
+- Include static files about pre-deployment report during installation (Huanhuan Li)
+
+----------------------------------------------------------------------------
 Tue Feb 11 12:05:34 UTC 2014 olev.kartau@intel.com - 1.20.0
 
 - Add arguments of runtest (Huang Hao)
