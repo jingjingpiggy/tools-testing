@@ -10,7 +10,7 @@ URL:        https://otctools.jf.intel.com/pm/projects/tools-testing
 Source0:    %{name}-%{version}.tar.gz
 
 BuildRequires:  coreutils
-BuildRequires:  python-devel
+BuildRequires:  python-devel python-setuptools
 
 Requires: coreutils sudo git-core make osc kvm numactl util-linux sysvinit-tools tar python-Jinja2 python-setuptools
 %if 0%{?suse_version} > 1220
