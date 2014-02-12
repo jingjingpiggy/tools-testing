@@ -87,9 +87,7 @@ if [ -e /etc/mic/mic.conf ]; then
     sed -i 's!^cachedir\s*=.*!cachedir=/home/build/tmp/mic/cache!' /etc/mic/mic.conf
     sed -i 's!^rootdir\s*=.*!rootdir=/home/build/tmp/mic-bootstrap!' /etc/mic/mic.conf
 fi
-cd /home/build
-su - build -c "runtest -vv --test-project-path=$itest_env_path $test_suite 2>&1"
-ls *.xml >/dev/null 2>&1 && cp -v *.xml reports/
+su - build -c "mkdir -p /home/build/reports; cd $itest_env_path; runtest -vv --with-xunit --xunit-file=/home/build/reports/xunit.xml $test_suite 2>&1"
 EOF
 }
 
