@@ -181,9 +181,17 @@ kvm_cpu_name() {
 }
 
 kvm_netcmd() {
-  # create unique MAC address from our own static part, node IP, slot number
+  # create unique MAC address from static part=52, node IP, slot number, process number
   # node IP last octet comes from SSH_CONNECTION="10.237.71.24 44908 10.237.71.173 22"
   nodenum=`echo "$SSH_CONNECTION" | awk '{print $3}' | awk -F\. '{printf("%02x", $4);}'`
   slotnum=`printf "%02x" $((EXECUTOR_NUMBER%256))`
-  echo "-net nic,macaddr=52:54:78:87:$nodenum:$slotnum -net user"
+  pid=$$
+  p1=$((pid/65536))
+  p1x=`printf "%02x" $p1`
+  pid=$((pid-p1*65536))
+  p2=$((pid/256))
+  p2x=`printf "%02x" $p2`
+  pid=$((pid-p2*256))
+  p3x=`printf "%02x" $pid`
+  echo "-net nic,macaddr=52:$nodenum:$slotnum:$p1x:$p2x:$p3x -net user"
 }
