@@ -34,10 +34,11 @@ if os.path.exists('conf.py'):
 
 # All these vars are coming from Jenkins running env
 GERRIT_PROJECT = os.environ['GERRIT_PROJECT']
-GERRIT_CHANGE_NUMBER = os.environ['GERRIT_CHANGE_NUMBER']
-GERRIT_PATCHSET_NUMBER = os.environ['GERRIT_PATCHSET_NUMBER']
-GERRIT_BRANCH = os.environ['GERRIT_BRANCH']
 GERRIT_EVENT_TYPE = os.environ['GERRIT_EVENT_TYPE']
+GERRIT_CHANGE_NUMBER = os.environ.get('GERRIT_CHANGE_NUMBER')
+GERRIT_PATCHSET_NUMBER = os.environ.get('GERRIT_PATCHSET_NUMBER')
+GERRIT_BRANCH = os.environ.get('GERRIT_BRANCH')
+GERRIT_REFNAME = os.environ.get('GERRIT_REFNAME')
 
 # slash is not allowed in OBS project name
 os.environ['GERRIT_PROJECT_DASH'] = GERRIT_PROJECT.replace('/', '-')
@@ -56,7 +57,10 @@ def find_repo(given_pack):
        gproj == GERRIT_PROJECT:
         return TESTER_PROJECT % os.environ
 
-    subproj = BRANCH2SUBPROJ[GERRIT_BRANCH[:7]]
+    value = os.environ.get('GERRIT_BRANCH', os.environ.get('GERRIT_REFNAME'))
+    subproj = BRANCH2SUBPROJ[value[:7]]
+
+    #For the event 'ref-updated', there is no 'GERRIT_BRANCH', use 'GERRIT_REFNAME'
     return '%s:%s' % (oproj, subproj)
 
 def guess_test_suite():
