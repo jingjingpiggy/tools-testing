@@ -123,12 +123,13 @@ launch_kvm() {
     fi
 
     netcmd=$(kvm_netcmd)
+    monitor_socket="$KVM_ROOT_ON_DISK/qemu-monitor-sock"
     # Run tests by starting KVM, executes /home/build/run and shuts down.
     $numacmd qemu-kvm -name $label -M pc \
         -cpu $KVM_CPU -m $KVM_MEMSZ $netcmd \
         -drive file=$KVM_SEED_HDA,snapshot=on \
         -drive file=$KVM_HDB \
-        -vnc :$EXECUTOR_NUMBER
+        -vnc none -monitor unix:$monitor_socket,server
     date
 }
 
