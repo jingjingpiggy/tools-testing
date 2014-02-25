@@ -129,7 +129,7 @@ launch_kvm() {
         -cpu $KVM_CPU -m $KVM_MEMSZ $netcmd \
         -drive file=$KVM_SEED_HDA,snapshot=on \
         -drive file=$KVM_HDB \
-        -vnc none -monitor unix:$monitor_socket,server
+        -vnc none -monitor unix:$monitor_socket,server,nowait
     date
 }
 
