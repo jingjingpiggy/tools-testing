@@ -88,8 +88,17 @@ date
 
 ls
 [ -f mic.log ] && cp mic.log reports/
-ls img.diff* >/dev/null && cp img.diff* reports/
-ls *.ks >/dev/null && cp *.ks reports/
+ls img.diff* >/dev/null 2>&1 && cp img.diff* reports/
+ls *.ks >/dev/null 2>&1 && cp *.ks reports/
+EOF
+
+    if [ "${COPY_IMG_PATTERN+defined}" ]; then
+    cat >> $BUILDHOME/create_image << EOF
+[ -d mic-output ] && ls mic-output | grep -E "$COPY_IMG_PATTERN" && cp -avr mic-output/* reports
+EOF
+    fi
+
+    cat >> $BUILDHOME/create_image << EOF
 ls reports/
 
 exit \$exitcode
@@ -134,12 +143,15 @@ usage() {
     echo "        dependsproject can be given to install dependent packages"
     echo "    -d copyToVMDir: if it's given, all files in this dir will be"
     echo "        copied into VM build home dir"
+    echo "    -E pattern: extended regexp to match image name. If the pattern"
+    echo "        matched, image will be copied out from VM instance into "
+    echo "        Jenkins job's workspace. The format is the same as grep -E."
 }
 ########
 # Main
 ########
 set +x
-set -- $(getopt hs:p:m:d: "$@")
+set -- $(getopt hs:p:m:d:E: "$@")
 while [ $# -gt 0 ]
 do
     case "$1" in
@@ -165,6 +177,7 @@ do
          ;;
     (-d)
         COPY_TO_VM_DIR=$2; shift;;
+    (-E) COPY_IMG_PATTERN="$2"; shift;;
     (--) shift; break;;
     (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
     (*)  break;;
