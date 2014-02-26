@@ -112,6 +112,12 @@ SnapshotURL: %s
             quit(0, "Passed", "Local image is OK "
                 "and needn't imgdiff on %s%s" % (dist[0], dist[1]))
         else: # local OK, remote OK => continue to diff
+            imgname = os.path.basename(localimg)
+            if localimg != imgname:
+                # copy image from mic-output to current dir, keep the
+                # origin image file for downstream job
+                call(["/bin/cp", "-a", localimg, imgname])
+                localimg = imgname
             localimg = uncompress(localimg)
     elif img.iscreated:
         quit(1, "Regression", "Local failed but remote is OK")
