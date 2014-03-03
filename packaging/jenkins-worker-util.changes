@@ -1,4 +1,17 @@
 ----------------------------------------------------------------------------
+Mon Mar  3 18:30:27 UTC 2014 olev.kartau@intel.com - 1.21.0
+
+- run-test-kvm: Make it possible to define "test requires" in env (Markus Lehtonen)
+- run-test-kvm: Make it possible to define extra repos in env (Markus Lehtonen)
+- Keep origin image before imgdiff (Huang Hao)
+- add install/upgrade test script (Yigang Wen)
+- Change way we create qemu VM MAC address, uses process number (Olev Kartau)
+- Add socat to dependencies (Olev Kartau)
+- Start qemu monitor at unix socket instead of VNC (Olev Kartau)
+- Give a None value when variable does not exist (Sun Lihong)
+- Copy image out of VM to trigger smoking tests (Huang Hao)
+
+----------------------------------------------------------------------------
 Wed Feb 12 09:12:01 UTC 2014 olev.kartau@intel.com - 1.20.1
 
 - Fix bug that run-itest-kvm won't copy xunit file (Huang Hao)
