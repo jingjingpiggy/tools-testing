@@ -1,4 +1,10 @@
 ----------------------------------------------------------------------------
+Tue Mar  4 07:06:27 UTC 2014 2014 olev.kartau@intel.com - 1.21.1
+
+- revert: run-test-kvm: Make it possible to define "test requires" in env (Markus Lehtonen)
+- revert: run-test-kvm: Make it possible to define extra repos in env (Markus Lehtonen)
+
+----------------------------------------------------------------------------
 Mon Mar  3 18:30:27 UTC 2014 olev.kartau@intel.com - 1.21.0
 
 - run-test-kvm: Make it possible to define "test requires" in env (Markus Lehtonen)
