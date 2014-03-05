@@ -51,6 +51,7 @@ fi
 %{_bindir}/pre-deployment-test-worker.sh
 %{_bindir}/run_tests
 %{_bindir}/run-itest-kvm.sh
+%{_bindir}/run-install-upgrade-test.sh
 %{_bindir}/safeosc
 %{_bindir}/trigger_itest_verify.py
 %{python_sitelib}/pre_deployment_test/
