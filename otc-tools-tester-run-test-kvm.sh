@@ -14,11 +14,12 @@ additional_init() {
     # create run script that will be auto-started in Virtual machine
     cat >> $BUILDHOME/run << EOF
 TESTREQ_PACKAGES=""
-EXTRA_REPOS=\${EXTRA_REPOS:=}
+EXTRA_REPOS="${EXTRA_REPOS:=}"
+TEST_REQUIRES="${TEST_REQUIRES:=}"
 if [ -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
   OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
   OSREL2=\`echo \$OSREL | sed s/-/_/g\`
-  if [ -n "\${TEST_REQUIRES:=}" ]; then
+  if [ -n "\$TEST_REQUIRES" ]; then
     TESTREQ_PACKAGES=\`echo "\$TEST_REQUIRES" | egrep "^(\$OSREL|\$OSREL2)\\s*:" | cut -d':' -f 2\`
   elif [ -f /home/build/$SRCDIR/packaging/.test-requires ]; then
     TESTREQ_PACKAGES=\`egrep "^(\$OSREL|\$OSREL2)\\s*:" /home/build/$SRCDIR/packaging/.test-requires | cut -d':' -f 2\`
