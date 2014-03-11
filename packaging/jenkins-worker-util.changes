@@ -1,5 +1,15 @@
 ----------------------------------------------------------------------------
-Tue Mar  4 07:06:27 UTC 2014 2014 olev.kartau@intel.com - 1.21.1
+Tue Mar 11 11:42:25 UTC 2014 olev.kartau@intel.com - 1.22.0
+
+- packaging: Require numactl only if architecture is x86_64 (Olev Kartau)
+- Use journalctl to get system log if no logfiles in /var/log (Olev Kartau)
+- run-test-kvm: fix environment injection (Markus Lehtonen)
+- Add install/upgrade script in Makefile (Yigang Wen)
+- run-test-kvm: Make it possible to define "test requires" in env (Markus Lehtonen)
+- run-test-kvm: Make it possible to define extra repos in env (Markus Lehtonen)
+
+----------------------------------------------------------------------------
+Tue Mar  4 07:06:27 UTC 2014 olev.kartau@intel.com - 1.21.1
 
 - revert: run-test-kvm: Make it possible to define "test requires" in env (Markus Lehtonen)
 - revert: run-test-kvm: Make it possible to define extra repos in env (Markus Lehtonen)
