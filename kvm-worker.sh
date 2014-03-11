@@ -75,6 +75,8 @@ End () {
     tail -50 /var/log/messages > /home/build/syslog
   elif [ -f /var/log/syslog ]; then
     tail -50 /var/log/syslog > /home/build/syslog
+  elif [ -x /usr/bin/journalctl ]; then
+    /usr/bin/journalctl --no-pager | tail -50 > /home/build/syslog
   fi
   dmesg | tail -50 > /home/build/dmesg
 }
