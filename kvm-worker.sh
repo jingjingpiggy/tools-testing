@@ -125,13 +125,12 @@ launch_kvm() {
     fi
 
     netcmd=$(kvm_netcmd)
-    monitor_socket="$KVM_ROOT_ON_DISK/qemu-monitor-sock"
+    vnccmd=$(kvm_vnccmd)
     # Run tests by starting KVM, executes /home/build/run and shuts down.
     $numacmd qemu-kvm -name $label -M pc \
         -cpu $KVM_CPU -m $KVM_MEMSZ $netcmd \
         -drive file=$KVM_SEED_HDA,snapshot=on \
-        -drive file=$KVM_HDB \
-        -vnc none -monitor unix:$monitor_socket,server,nowait
+        -drive file=$KVM_HDB $vnccmd
     date
 }
 
@@ -196,6 +195,25 @@ kvm_netcmd() {
   pid=$((pid-p2*256))
   p3x=`printf "%02x" $pid`
   echo "-net nic,macaddr=52:$nodenum:$slotnum:$p1x:$p2x:$p3x -net user"
+}
+
+kvm_vnccmd() {
+  # find free VNC number.
+  # Start with Jenkins slot number. If this socket is taken,
+  # increment to next range area. We assume max 20 slots per Jenkins worker.
+  # That makes sure our session does not fail because of leftover qemu process
+  # or some manually started process with same vnc number, or some random socket.
+
+  slots_range=20
+  vncnum=$EXECUTOR_NUMBER
+  while [ $vncnum -lt 200 ]; do
+      vncsock=`printf "00000000:%04X 00000000:0000" $((5900 + vncnum))`
+      if ! grep "$vncsock" /proc/net/tcp  ; then
+          break
+      fi
+      vncnum=$((vncnum + slots_range))
+  done
+  echo "-vnc :$vncnum"
 }
 
 setenv_to_run() {
