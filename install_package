@@ -51,9 +51,14 @@ add_extra_repos() {
    reponame=`echo $r | sed 's/ //g' | sed 's/http://g' | tr -d '[:punct:][:space:]'`
    if [ $r_on = "ubuntu" ] ; then
      echo "$r" >>  $rlist
+     tmp_file=$(mktemp)
+     sort -u $rlist > $tmp_file
+     mv $tmp_file $rlist
    elif [ $r_on = "opensuse" ] ; then
-     zypper ar -fG "$r" "$reponame"
+     check_suse_duplicate_repo_add "$r" "$reponame"
    elif [ $r_on = "fedora" ] ; then
+     # For yum platforms, it use function create_rpm_repo, it overwritten the existed
+     # same file, so no need to check duplicate repo
      create_rpm_repo $reponame $r
    fi
  done
