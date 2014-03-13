@@ -20,9 +20,13 @@ prepare_kvm $label additional_init
 KVM_CPU=$(kvm_cpu_name $OBS_ARCH)
 KVM_HDA="$KVM_ROOT_ON_DISK/kvm-hda"
 netcmd=$(kvm_netcmd)
+vnccmd=$(kvm_vnccmd)
 cp $KVM_SEED_HDA $KVM_HDA
 chmod 644 $KVM_HDA
-qemu-kvm -name $label -M pc -cpu $KVM_CPU -m 2048 $netcmd -drive file=$KVM_HDA -drive file=$KVM_HDB
+qemu-kvm -name $label -M pc \
+    -cpu $KVM_CPU -m 2048 $netcmd \
+    -drive file=$KVM_HDA \
+    -drive file=$KVM_HDB $vnccmd
 # set updated image back to read-only, move to Jenkins home as .new
 chmod 444 $KVM_HDA
 mv $KVM_HDA $JENKINS_HOME/kvm-seed-hda-$label.new
