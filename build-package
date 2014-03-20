@@ -19,6 +19,7 @@ import time
 import urllib2
 
 from collections import defaultdict
+from functools import wraps
 from urllib import quote_plus, pathname2url
 import M2Crypto
 from M2Crypto.SSL.Checker import SSLVerificationError
@@ -47,6 +48,33 @@ FILE_TEMPLATE = """
 class BuildError(Exception):
     """Custom exception for this script."""
     pass
+
+class CancelRetryError(Exception):
+    """Exception for handling cancelling of the re_try loop. Needed for
+    transparently re-raising the previous exception."""
+    def __init__(self):
+        self.typ, self.val, self.backtrace = sys.exc_info()
+
+
+def re_try(exceptions, tries=3, sleep=0):
+    """Decorator for re-trying function calls"""
+    def decorator(func):
+        """The "real" decorator function"""
+        @wraps(func)
+        def wrap(*args, **kwargs):
+            """Wrapper for re-trying func"""
+            for attempt in range(1, tries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except CancelRetryError as err:
+                    raise err.typ, err.val, err.backtrace
+                except exceptions as err:
+                    if attempt >= tries:
+                        raise
+                    elif sleep:
+                        time.sleep(sleep)
+        return wrap
+    return decorator
 
 def parse_cmdline(argv):
     """Parse commandline with argparse."""
@@ -106,14 +134,16 @@ def put_meta(apiurl, metatype, path_args, data):
 
     # Let's make 3 attempts to send the query, because sometimes
     # it failes with urllib2.HTTPError: HTTP Error 500: Internal Server Error
-    for attempt in (1, 2, 3):
+    @re_try(urllib2.HTTPError)
+    def _call_put(*args, **kwargs):
         try:
-            osc.core.http_PUT(url, file=filename)
-        except urllib2.HTTPError, err:
-            if err.code != 500 or attempt == 3:
+            osc.core.http_PUT(*args, **kwargs)
+        except urllib2.HTTPError as err:
+            if err.code != 500:
+                raise CancelRetryError
+            else:
                 raise
-        else:
-            break
+    _call_put(url, file=filename)
 
     os.unlink(filename)
 
@@ -158,31 +188,26 @@ def exists(apiurl, prj, pkg=''):
 
     path_args = [quote_plus(prj)]
 
-    for _try in (1, 2, 3):
-        err = None
+    exceptions = (urllib2.URLError, M2Crypto.m2urllib2.URLError,
+                  M2Crypto.SSL.SSLError, urllib2.HTTPError)
+    @re_try(exceptions, sleep=3)
+    def _call_meta_exists(*args, **kwargs):
         try:
-            osc.core.meta_exists(metatype='prj', path_args=tuple(path_args),
-                                 create_new=False, apiurl=apiurl)
+            osc.core.meta_exists(*args, **kwargs)
             if pkg:
                 return pkg in osc.core.meta_get_packagelist(apiurl, prj)
         except urllib2.HTTPError, err:
             if err.code == 404:
                 return False
-        except (urllib2.URLError, M2Crypto.m2urllib2.URLError, \
-                                  M2Crypto.SSL.SSLError), err:
-            pass
+            raise
         except SSLVerificationError:
             raise BuildError("SSL verification error.")
-
-        if err:
-            if _try == 3:
-                raise BuildError("can't check if %s/%s exists: %s" % \
-                                 (prj, pkg, err))
-            else:
-                time.sleep(3)
-                continue
-
         return True
+    try:
+        return _call_meta_exists(metatype='prj', path_args=tuple(path_args),
+                                 create_new=False, apiurl=apiurl)
+    except exceptions as err:
+        raise BuildError("can't check if %s/%s exists: %s" % (prj, pkg, err))
 
 def delete_project(apiurl, prj, force=False, msg=None):
     """Delete OBS project."""
@@ -192,14 +217,14 @@ def delete_project(apiurl, prj, force=False, msg=None):
     if msg:
         query['comment'] = msg
     url = osc.core.makeurl(apiurl, ['source', prj], query)
-    for _try in (1, 2, 3):
-        try:
-            osc.core.http_DELETE(url)
-        except urllib2.HTTPError, err:
-            if _try == 3:
-                raise BuildError("can't delete project %s: %s" % (prj, err))
-            continue
-        return
+
+    @re_try(urllib2.HTTPError)
+    def _call_delete(*args, **kwargs):
+        osc.core.http_DELETE(*args, **kwargs)
+    try:
+        _call_delete(url)
+    except urllib2.HTTPError as err:
+        raise BuildError("can't delete project %s: %s" % (prj, err))
 
 def build_published(status_line):
     """Parse status line and check if project buid is published."""
@@ -219,16 +244,15 @@ def build(apiurl, project, package, timeout):
         while True:
             # Let's make 3 attempts to get results, because sometimes it failes
             # with cElementTree.ParseError: no element found: line 1, column 0
-            for _try in (1, 2, 3):
-                try:
-                    results = osc.core.get_prj_results(apiurl, project,
-                                            hide_legend=True, csv=True)
-                except (osc.core.ET.ParseError, SSLError):
-                    if _try == 3:
-                        raise BuildError("error getting build results for %s" \
-                                         % project)
-                    continue
-                break
+            exceptions = (osc.core.ET.ParseError, SSLError)
+            @re_try(exceptions)
+            def _call_get_prj_results(*args, **kwargs):
+                return osc.core.get_prj_results(*args, **kwargs)
+            try:
+                results = _call_get_prj_results(apiurl, project,
+                                                hide_legend=True, csv=True)
+            except exceptions:
+                raise BuildError("error getting build results for %s" % project)
 
             if results and len(results) > 1 and build_published(results[0]):
                 break
