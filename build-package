@@ -24,6 +24,7 @@ from urllib import quote_plus, pathname2url
 import M2Crypto
 from M2Crypto.SSL.Checker import SSLVerificationError
 from ssl import SSLError
+from xml.dom import minidom
 
 import osc.conf
 import osc.core
@@ -124,6 +125,20 @@ def create_package(apiurl, prj, pkg):
            '<title/><description/></package>' % (prj, pkg)
     put_meta(apiurl, "pkg", (quote_plus(prj), quote_plus(pkg)), meta)
 
+def copy_package_meta(apiurl, src_prj, src_pkg, tgt_prj, tgt_pkg,
+                      sections=None):
+    """Copy package meta"""
+    src_path = (quote_plus(src_prj), quote_plus(src_pkg))
+    tgt_path = (quote_plus(tgt_prj), quote_plus(tgt_pkg))
+    copy_meta(apiurl, 'pkg', src_path, tgt_path, sections)
+
+@re_try(urllib2.HTTPError)
+def get_meta(apiurl, metatype, path_args):
+    """Get meta as a Document object"""
+    url = osc.core.make_meta_url(metatype, path_args, apiurl)
+    fobj = osc.core.http_GET(url)
+    return minidom.parse(fobj)
+
 def put_meta(apiurl, metatype, path_args, data):
     """Wrapper to put metadata to OBS."""
     url = osc.core.make_meta_url(metatype, path_args, apiurl, False)
@@ -146,6 +161,24 @@ def put_meta(apiurl, metatype, path_args, data):
     _call_put(url, file=filename)
 
     os.unlink(filename)
+
+def copy_meta(apiurl, metatype, src_path_args, tgt_path_args, sections=None):
+    """Copy selected meta sections from source to target on the remote"""
+    src_meta = get_meta(apiurl, metatype, src_path_args)
+    tgt_meta = get_meta(apiurl, metatype, tgt_path_args)
+
+    # Remove selected "sections" from the tgt meta and replace with one
+    # from the src meta. We only consider "top-level" elements here (i.e. no
+    # recursion in the xml tree). Copy all sections if none are specified.
+    for child in tgt_meta.firstChild.childNodes[:]:
+        if not sections or child.localName in sections:
+            tgt_meta.firstChild.removeChild(child)
+    for child in src_meta.firstChild.childNodes:
+        if not sections or child.localName in sections:
+            tgt_meta.firstChild.appendChild(child.cloneNode(True))
+
+    # Write modified tgt meta back to server
+    put_meta(apiurl, metatype, tgt_path_args, tgt_meta.toxml())
 
 def hexdigest(fhandle, block_size=4096):
     """Calculates hexdigest of file content."""
@@ -318,6 +351,8 @@ def main(argv):
                 print "branch package %s/%s to %s/%s" % (sproject, package,
                                                          tproject, package)
                 branch_package(apiurl, sproject, package, tproject)
+                copy_package_meta(apiurl, sproject, package, tproject, package,
+                                  ['build'])
             else:
                 print "create package %s/%s" % (tproject, package)
                 create_package(apiurl, tproject, package)
