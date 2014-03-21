@@ -354,15 +354,13 @@ def main(argv):
             link_project(apiurl, sproject, tproject)
 
         if not exists(apiurl, tproject, package):
+            print "create package %s/%s" % (tproject, package)
+            create_package(apiurl, tproject, package)
+
             if sproject and exists(apiurl, sproject, package):
-                print "branch package %s/%s to %s/%s" % (sproject, package,
-                                                         tproject, package)
-                branch_package(apiurl, sproject, package, tproject)
-                copy_package_meta(apiurl, sproject, package, tproject, package,
-                                  ['build'])
-            else:
-                print "create package %s/%s" % (tproject, package)
-                create_package(apiurl, tproject, package)
+                print "copy pkg meta from %s/%s to %s/%s" % (sproject, package,
+                                                             tproject, package)
+                copy_package_meta(apiurl, sproject, package, tproject, package)
 
         print "uploading files to %s/%s" % (tproject, package)
         add_files(apiurl, tproject, package, paths)
