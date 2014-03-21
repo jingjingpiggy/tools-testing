@@ -19,6 +19,7 @@ import time
 import urllib2
 
 from collections import defaultdict
+from datetime import date
 from functools import wraps
 from urllib import quote_plus, pathname2url
 import M2Crypto
@@ -111,6 +112,12 @@ def link_project(apiurl, src, target):
     targetmeta += "</project>\n"
 
     put_meta(apiurl, "prj", quote_plus(target), targetmeta)
+
+    # Set release tag in prjconf so that the rpm versions in target project
+    # will be greater than those in the base project
+    prjconf = "Release: %s.<CI_CNT>\n" % date.today().strftime('%Y%m%d')
+    put_meta(apiurl, "prjconf", quote_plus(target), prjconf)
+
 
 def branch_package(apiurl, src_project, src_package,
                    target_project, target_package=None):
