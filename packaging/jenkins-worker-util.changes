@@ -1,4 +1,10 @@
 ----------------------------------------------------------------------------
+Mon Mar 24 19:28:49 UTC 2014 olev.kartau@intel.com - 1.22.2
+
+- kvm-tester.sh: vnc cmd composer needs quiet grep (Olev Kartau)
+- Images update cmd needs VNC argument or it does not work at all (Olev Kartau)
+
+----------------------------------------------------------------------------
 Thu Mar 13 07:59:15 UTC 2014 olev.kartau@intel.com - 1.22.1
 
 - Remove duplicate repo when adding extra_repo (Sun Lihong)
