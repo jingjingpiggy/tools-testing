@@ -208,7 +208,7 @@ kvm_vnccmd() {
   vncnum=$EXECUTOR_NUMBER
   while [ $vncnum -lt 200 ]; do
       vncsock=`printf "00000000:%04X 00000000:0000" $((5900 + vncnum))`
-      if ! grep "$vncsock" /proc/net/tcp  ; then
+      if ! grep -q "$vncsock" /proc/net/tcp ; then
           break
       fi
       vncnum=$((vncnum + slots_range))
