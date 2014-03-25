@@ -19,10 +19,13 @@ import time
 import urllib2
 
 from collections import defaultdict
+from datetime import date
+from functools import wraps
 from urllib import quote_plus, pathname2url
 import M2Crypto
 from M2Crypto.SSL.Checker import SSLVerificationError
 from ssl import SSLError
+from xml.dom import minidom
 
 import osc.conf
 import osc.core
@@ -47,6 +50,33 @@ FILE_TEMPLATE = """
 class BuildError(Exception):
     """Custom exception for this script."""
     pass
+
+class CancelRetryError(Exception):
+    """Exception for handling cancelling of the re_try loop. Needed for
+    transparently re-raising the previous exception."""
+    def __init__(self):
+        self.typ, self.val, self.backtrace = sys.exc_info()
+
+
+def re_try(exceptions, tries=3, sleep=0):
+    """Decorator for re-trying function calls"""
+    def decorator(func):
+        """The "real" decorator function"""
+        @wraps(func)
+        def wrap(*args, **kwargs):
+            """Wrapper for re-trying func"""
+            for attempt in range(1, tries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except CancelRetryError as err:
+                    raise err.typ, err.val, err.backtrace
+                except exceptions as err:
+                    if attempt >= tries:
+                        raise
+                    elif sleep:
+                        time.sleep(sleep)
+        return wrap
+    return decorator
 
 def parse_cmdline(argv):
     """Parse commandline with argparse."""
@@ -83,6 +113,12 @@ def link_project(apiurl, src, target):
 
     put_meta(apiurl, "prj", quote_plus(target), targetmeta)
 
+    # Set release tag in prjconf so that the rpm versions in target project
+    # will be greater than those in the base project
+    prjconf = "Release: %s.<CI_CNT>\n" % date.today().strftime('%Y%m%d')
+    put_meta(apiurl, "prjconf", quote_plus(target), prjconf)
+
+
 def branch_package(apiurl, src_project, src_package,
                    target_project, target_package=None):
     """Branch package from source to target project."""
@@ -96,6 +132,20 @@ def create_package(apiurl, prj, pkg):
            '<title/><description/></package>' % (prj, pkg)
     put_meta(apiurl, "pkg", (quote_plus(prj), quote_plus(pkg)), meta)
 
+def copy_package_meta(apiurl, src_prj, src_pkg, tgt_prj, tgt_pkg,
+                      sections=None):
+    """Copy package meta"""
+    src_path = (quote_plus(src_prj), quote_plus(src_pkg))
+    tgt_path = (quote_plus(tgt_prj), quote_plus(tgt_pkg))
+    copy_meta(apiurl, 'pkg', src_path, tgt_path, sections)
+
+@re_try(urllib2.HTTPError)
+def get_meta(apiurl, metatype, path_args):
+    """Get meta as a Document object"""
+    url = osc.core.make_meta_url(metatype, path_args, apiurl)
+    fobj = osc.core.http_GET(url)
+    return minidom.parse(fobj)
+
 def put_meta(apiurl, metatype, path_args, data):
     """Wrapper to put metadata to OBS."""
     url = osc.core.make_meta_url(metatype, path_args, apiurl, False)
@@ -106,16 +156,36 @@ def put_meta(apiurl, metatype, path_args, data):
 
     # Let's make 3 attempts to send the query, because sometimes
     # it failes with urllib2.HTTPError: HTTP Error 500: Internal Server Error
-    for attempt in (1, 2, 3):
+    @re_try(urllib2.HTTPError)
+    def _call_put(*args, **kwargs):
         try:
-            osc.core.http_PUT(url, file=filename)
-        except urllib2.HTTPError, err:
-            if err.code != 500 or attempt == 3:
+            osc.core.http_PUT(*args, **kwargs)
+        except urllib2.HTTPError as err:
+            if err.code != 500:
+                raise CancelRetryError
+            else:
                 raise
-        else:
-            break
+    _call_put(url, file=filename)
 
     os.unlink(filename)
+
+def copy_meta(apiurl, metatype, src_path_args, tgt_path_args, sections=None):
+    """Copy selected meta sections from source to target on the remote"""
+    src_meta = get_meta(apiurl, metatype, src_path_args)
+    tgt_meta = get_meta(apiurl, metatype, tgt_path_args)
+
+    # Remove selected "sections" from the tgt meta and replace with one
+    # from the src meta. We only consider "top-level" elements here (i.e. no
+    # recursion in the xml tree). Copy all sections if none are specified.
+    for child in tgt_meta.firstChild.childNodes[:]:
+        if not sections or child.localName in sections:
+            tgt_meta.firstChild.removeChild(child)
+    for child in src_meta.firstChild.childNodes:
+        if not sections or child.localName in sections:
+            tgt_meta.firstChild.appendChild(child.cloneNode(True))
+
+    # Write modified tgt meta back to server
+    put_meta(apiurl, metatype, tgt_path_args, tgt_meta.toxml())
 
 def hexdigest(fhandle, block_size=4096):
     """Calculates hexdigest of file content."""
@@ -158,31 +228,26 @@ def exists(apiurl, prj, pkg=''):
 
     path_args = [quote_plus(prj)]
 
-    for _try in (1, 2, 3):
-        err = None
+    exceptions = (urllib2.URLError, M2Crypto.m2urllib2.URLError,
+                  M2Crypto.SSL.SSLError, urllib2.HTTPError)
+    @re_try(exceptions, sleep=3)
+    def _call_meta_exists(*args, **kwargs):
         try:
-            osc.core.meta_exists(metatype='prj', path_args=tuple(path_args),
-                                 create_new=False, apiurl=apiurl)
+            osc.core.meta_exists(*args, **kwargs)
             if pkg:
                 return pkg in osc.core.meta_get_packagelist(apiurl, prj)
         except urllib2.HTTPError, err:
             if err.code == 404:
                 return False
-        except (urllib2.URLError, M2Crypto.m2urllib2.URLError, \
-                                  M2Crypto.SSL.SSLError), err:
-            pass
+            raise
         except SSLVerificationError:
             raise BuildError("SSL verification error.")
-
-        if err:
-            if _try == 3:
-                raise BuildError("can't check if %s/%s exists: %s" % \
-                                 (prj, pkg, err))
-            else:
-                time.sleep(3)
-                continue
-
         return True
+    try:
+        return _call_meta_exists(metatype='prj', path_args=tuple(path_args),
+                                 create_new=False, apiurl=apiurl)
+    except exceptions as err:
+        raise BuildError("can't check if %s/%s exists: %s" % (prj, pkg, err))
 
 def delete_project(apiurl, prj, force=False, msg=None):
     """Delete OBS project."""
@@ -192,14 +257,14 @@ def delete_project(apiurl, prj, force=False, msg=None):
     if msg:
         query['comment'] = msg
     url = osc.core.makeurl(apiurl, ['source', prj], query)
-    for _try in (1, 2, 3):
-        try:
-            osc.core.http_DELETE(url)
-        except urllib2.HTTPError, err:
-            if _try == 3:
-                raise BuildError("can't delete project %s: %s" % (prj, err))
-            continue
-        return
+
+    @re_try(urllib2.HTTPError)
+    def _call_delete(*args, **kwargs):
+        osc.core.http_DELETE(*args, **kwargs)
+    try:
+        _call_delete(url)
+    except urllib2.HTTPError as err:
+        raise BuildError("can't delete project %s: %s" % (prj, err))
 
 def build_published(status_line):
     """Parse status line and check if project buid is published."""
@@ -219,16 +284,15 @@ def build(apiurl, project, package, timeout):
         while True:
             # Let's make 3 attempts to get results, because sometimes it failes
             # with cElementTree.ParseError: no element found: line 1, column 0
-            for _try in (1, 2, 3):
-                try:
-                    results = osc.core.get_prj_results(apiurl, project,
-                                            hide_legend=True, csv=True)
-                except (osc.core.ET.ParseError, SSLError):
-                    if _try == 3:
-                        raise BuildError("error getting build results for %s" \
-                                         % project)
-                    continue
-                break
+            exceptions = (osc.core.ET.ParseError, SSLError)
+            @re_try(exceptions)
+            def _call_get_prj_results(*args, **kwargs):
+                return osc.core.get_prj_results(*args, **kwargs)
+            try:
+                results = _call_get_prj_results(apiurl, project,
+                                                hide_legend=True, csv=True)
+            except exceptions:
+                raise BuildError("error getting build results for %s" % project)
 
             if results and len(results) > 1 and build_published(results[0]):
                 break
@@ -247,6 +311,25 @@ def build(apiurl, project, package, timeout):
                                                     'blocked', 'broken')]:
                 raise BuildError('package %s is in unknown state: %s' % \
                                  (package, splitted[1:]))
+            url = osc.core.makeurl(apiurl, ('source', project, package))
+            if 'broken' in statuses:
+                @re_try(urllib2.HTTPError)
+                def _call_http_get(*args, **kwargs):
+                    return osc.core.http_GET(*args, **kwargs)
+                try:
+                    state = minidom.parse(_call_http_get(url))
+                except urllib2.HTTPError:
+                    raise BuildError('unable to get source listing for %s' %
+                                     package)
+                infos = state.firstChild.getElementsByTagName('serviceinfo')
+                if infos:
+                    info = infos[0]
+                    error = info.getElementsByTagName('error')[0]
+                    if info.getAttribute('code') == 'failed':
+                        print "OBS source service failed:"
+                        print error.childNodes[0].nodeValue
+                        return 1
+
             print 'waiting for %s: %s' % (package, splitted[1:])
 
         if not statuses:
@@ -290,13 +373,13 @@ def main(argv):
             link_project(apiurl, sproject, tproject)
 
         if not exists(apiurl, tproject, package):
+            print "create package %s/%s" % (tproject, package)
+            create_package(apiurl, tproject, package)
+
             if sproject and exists(apiurl, sproject, package):
-                print "branch package %s/%s to %s/%s" % (sproject, package,
-                                                         tproject, package)
-                branch_package(apiurl, sproject, package, tproject)
-            else:
-                print "create package %s/%s" % (tproject, package)
-                create_package(apiurl, tproject, package)
+                print "copy pkg meta from %s/%s to %s/%s" % (sproject, package,
+                                                             tproject, package)
+                copy_package_meta(apiurl, sproject, package, tproject, package)
 
         print "uploading files to %s/%s" % (tproject, package)
         add_files(apiurl, tproject, package, paths)
