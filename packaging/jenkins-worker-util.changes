@@ -1,4 +1,14 @@
 ----------------------------------------------------------------------------
+Tue Mar 25 10:31:41 UTC 2014 olev.kartau@intel.com - 1.23.0
+
+-     changes by Markus Lehtonen:
+      build-package: detect failed source service
+      build-package: don't branch package
+      build-package: set rpm release tag to big number
+      build-package: copy package build meta from source pkg
+      build-package: decorator for function call re-tries
+
+----------------------------------------------------------------------------
 Mon Mar 24 19:28:49 UTC 2014 olev.kartau@intel.com - 1.22.2
 
 - kvm-tester.sh: vnc cmd composer needs quiet grep (Olev Kartau)
