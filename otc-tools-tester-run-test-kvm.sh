@@ -59,7 +59,7 @@ fi
 NAME_SUFFIX=""
 GIT_URL=""
 SKIP_DISABLED_BUILDS=""
-set -- $(getopt -l skip-disabled -o s:u:m: -- "$@")
+eval set -- $(getopt -l skip-disabled -o s:u:m: -- "$@")
 while [ $# -gt 0 ]
 do
     case "$1" in
