@@ -58,7 +58,8 @@ fi
 
 NAME_SUFFIX=""
 GIT_URL=""
-set -- $(getopt s:u:m: "$@")
+SKIP_DISABLED_BUILDS=""
+set -- $(getopt -l skip-disabled -o s:u:m: -- "$@")
 while [ $# -gt 0 ]
 do
     case "$1" in
@@ -69,6 +70,7 @@ do
          check_kvm_args
          shift
          ;;
+    (--skip-disabled) SKIP_DISABLED_BUILDS=1;;
     (--) shift; break;;
     (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
     (*)  break;;
@@ -184,10 +186,17 @@ else
     exit $buildval
 fi
 
-# Get OBS build log and show it
-safeosc remotebuildlog "$TARGET_PROJECT" $PACKAGE "$OBS_REPO" "$OBS_ARCH"
 # Get OBS build status
 BSTAT=`safeosc results -r "$OBS_REPO" -a "$OBS_ARCH" "$TARGET_PROJECT" $PACKAGE | awk '{print $NF}'`
+
+if [ "$BSTAT" = "disabled" -a "$SKIP_DISABLED_BUILDS" ]; then
+    echo "Build of $PACKAGE in $OBS_REPO/$OBS_ARCH is disabled, skipping testing"
+    exit 0
+fi
+
+# Get OBS build log and show it
+safeosc remotebuildlog "$TARGET_PROJECT" $PACKAGE "$OBS_REPO" "$OBS_ARCH"
+
 if [ "$BSTAT" = "failed" ]; then
     echo "Error: package build status is $BSTAT, build FAILED"
     exit 1
