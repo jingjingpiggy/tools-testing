@@ -18,12 +18,14 @@ done || :
 
 cd $src
 if [ -d tests ] ; then
-    # Run nosetests with coverage support
-    nosetests -v --with-coverage --with-xunit
+    if [ -n "`find tests -type f -name '*.py'`" ]; then
+        # Run nosetests with coverage support
+        nosetests -v --with-coverage --with-xunit
 
-    # Run coverage
-    coverage=$(which coverage || which python-coverage)
-    $coverage xml
+        # Run coverage
+        coverage=$(which coverage || which python-coverage)
+        $coverage xml
+    fi
 elif [ -f Makefile ] ; then
     if make -s -n test ; then
         make test
