@@ -127,7 +127,7 @@ launch_kvm() {
     netcmd=$(kvm_netcmd)
     vnccmd=$(kvm_vnccmd)
     # Run tests by starting KVM, executes /home/build/run and shuts down.
-    $numacmd qemu-kvm -name $label -M pc \
+    /usr/bin/timeout 12h $numacmd qemu-kvm -name $label -M pc \
         -cpu $KVM_CPU -m $KVM_MEMSZ $netcmd \
         -drive file=$KVM_SEED_HDA,snapshot=on \
         -drive file=$KVM_HDB $vnccmd
