@@ -1,4 +1,10 @@
 ----------------------------------------------------------------------------
+Fri Mar 28 06:35:23 UTC 2014 olev.kartau@intel.com - 1.24.0
+
+- otc-tools-tester-run-test-kvm.sh: add new --skip-disabled option
+  Skipped builds have succeeded jenkins status. (Markus Lehtonen)
+
+----------------------------------------------------------------------------
 Tue Mar 25 10:31:41 UTC 2014 olev.kartau@intel.com - 1.23.0
 
 -     changes by Markus Lehtonen:
