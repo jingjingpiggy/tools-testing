@@ -1,4 +1,9 @@
 ----------------------------------------------------------------------------
+Fri Mar 28 10:33:41 UTC 2014 olev.kartau@intel.com - 1.24.1
+
+- Fix a quoting problem caused by a previous getopt change  (Markus Lehtonen)
+
+----------------------------------------------------------------------------
 Fri Mar 28 06:35:23 UTC 2014 olev.kartau@intel.com - 1.24.0
 
 - otc-tools-tester-run-test-kvm.sh: add new --skip-disabled option
