@@ -302,17 +302,18 @@ def build(apiurl, project, package, timeout):
         statuses = []
         for pkginfo in results[1:]:
             splitted = pkginfo.split(';')
-            statuses.extend([status for status in splitted[1:] \
+            pkg_status = [status for status in splitted[1:]
                             if status not in ('excluded', 'succeeded',
-                                              'disabled', 'failed')])
+                                              'disabled', 'failed')]
+            statuses.extend(pkg_status)
             package = splitted[0]
-            if [st for st in statuses if st not in ('building', 'scheduled',
-                                                    'dispatching', 'finished',
-                                                    'blocked', 'broken')]:
+            if [st for st in pkg_status if st not in ('building', 'scheduled',
+                                                      'dispatching', 'finished',
+                                                      'blocked', 'broken')]:
                 raise BuildError('package %s is in unknown state: %s' % \
                                  (package, splitted[1:]))
             url = osc.core.makeurl(apiurl, ('source', project, package))
-            if 'broken' in statuses:
+            if 'broken' in pkg_status:
                 @re_try(urllib2.HTTPError)
                 def _call_http_get(*args, **kwargs):
                     return osc.core.http_GET(*args, **kwargs)
