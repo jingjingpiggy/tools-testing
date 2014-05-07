@@ -1,8 +1,15 @@
 ----------------------------------------------------------------------------
+Wed May  7 09:02:42 UTC 2014 olev.kartau@intel.com - 1.25.0
+
+- Move 'export proxy' to an executable file (Sun Lihong)
+- Updated distro versions in packaging/.test-requires (Olev Kartau)
+- build-package: don't mix build statuses of packages (Markus Lehtonen)
+
+----------------------------------------------------------------------------
 Fri Mar 28 15:45:57 UTC 2014 olev.kartau@intel.com - 1.24.2
 
 - run_tests: try to be wiser about when to run nosetests (Markus Lehtonen)
-- tester: wrap qemu-kvm call in 12-hour timeout to avoid endless jobs (Olev Kartau)
+- tester: wrap qemu-kvm call in 12-hour tmo to avoid endless jobs (Olev Kartau)
 
 ----------------------------------------------------------------------------
 Fri Mar 28 10:33:41 UTC 2014 olev.kartau@intel.com - 1.24.1
