@@ -9,43 +9,50 @@
 #cd $WORKSPACE/run-itest
 #label=openSUSE_12.1-i586-debug
 
-outward_proxy_prepare() {
-    ###### pass proxy settings into KVM
+make_export_proxy_script() {
+    ###### pass proxy settings into '$BUIDHOME/proxy_prepare'
+    ###### mainly to use the it when running itest as user 'build'
+    echo "#!/bin/bash" > $BUILDHOME/proxy_prepare
     if [ "${http_proxy+defined}" ]; then
-        echo "export http_proxy=\"$http_proxy\"" >> $BUILDHOME/run
+        echo "export http_proxy=\"$http_proxy\"" >> $BUILDHOME/proxy_prepare
     fi
     if [ "${https_proxy+defined}" ]; then
-        echo "export https_proxy=\"$https_proxy\"" >> $BUILDHOME/run
+        echo "export https_proxy=\"$https_proxy\"" >> $BUILDHOME/proxy_prepare
     fi
     if [ "${no_proxy+defined}" ]; then
-        echo "export no_proxy=\"$no_proxy\"" >> $BUILDHOME/run
+        echo "export no_proxy=\"$no_proxy\"" >> $BUILDHOME/proxy_prepare
     fi
     if [ "${HTTP_PROXY+defined}" ]; then
-        echo "export HTTP_PROXY=\"$HTTP_PROXY\"" >> $BUILDHOME/run
+        echo "export HTTP_PROXY=\"$HTTP_PROXY\"" >> $BUILDHOME/proxy_prepare
     fi
     if [ "${HTTPS_PROXY+defined}" ]; then
-        echo "export HTTPS_PROXY=\"$HTTPS_PROXY\"" >> $BUILDHOME/run
+        echo "export HTTPS_PROXY=\"$HTTPS_PROXY\"" >> $BUILDHOME/proxy_prepare
     fi
     if [ "${NO_PROXY+defined}" ]; then
-        echo "export NO_PROXY=\"$NO_PROXY\"" >> $BUILDHOME/run
+        echo "export NO_PROXY=\"$NO_PROXY\"" >> $BUILDHOME/proxy_prepare
     fi
+    chmod +x $BUILDHOME/proxy_prepare
+}
 
-    ##### enable proxy on openSUSE ####
-    cat >> $BUILDHOME/run <<EOF
+set_proxy(){
+    make_export_proxy_script
+    cat >>$BUILDHOME/run << EOF
+##### enable proxy on openSUSE ####
 if [ -e /etc/sysconfig/proxy ]; then
 sed -i 's/PROXY_ENABLED=.*/PROXY_ENABLED="yes"/' /etc/sysconfig/proxy
 fi
-EOF
-    ##### enable proxy on fedora/centos ####
-    cat >> $BUILDHOME/run <<EOF
+##### enable proxy on fedora/centos ####
 sed -i '/^proxy=_none_/d' $TARGETBIN/install_package
+#### export proxy through script proxy_prepare ####
+test -e /home/build/proxy_prepare && cat /home/build/proxy_prepare
+test -e /home/build/proxy_prepare && . /home/build/proxy_prepare
 EOF
 }
-
 
 additional_init() {
     BUILDHOME=$1
     distro=$(echo $label|cut -d'_' -f 1|tr [:upper:] [:lower:])
+    set_proxy
 
     i=0
     while [ $i -lt $install_package_cnt ]; do
@@ -53,7 +60,6 @@ additional_init() {
         projs=${install_package_proj[$i]}
         extra_repo=${install_package_extra_r[$i]}
         if [ -n "$extra_repo" ]; then
-            outward_proxy_prepare
             if [ "$distro" = "ubuntu" ]; then
                 extra_repo="deb $extra_repo/$OBS_REPO /"
             else
@@ -80,14 +86,13 @@ EOF
 sed -i 's!https\:\/\/download.tz.jf.intel.com!https\:\/\/$tz_user_passwd\@download.tz.jf.intel.com!g' $itest_env_path/fixtures/ks_files/*.ks
 EOF
     fi
-
     cat >>$BUILDHOME/run <<EOF
 if [ -e /etc/mic/mic.conf ]; then
     sed -i 's!^tmpdir\s*=.*!tmpdir=/home/build/tmp/mic!'  /etc/mic/mic.conf
     sed -i 's!^cachedir\s*=.*!cachedir=/home/build/tmp/mic/cache!' /etc/mic/mic.conf
     sed -i 's!^rootdir\s*=.*!rootdir=/home/build/tmp/mic-bootstrap!' /etc/mic/mic.conf
 fi
-su - build -c "mkdir -p /home/build/reports; cd $itest_env_path; runtest -vv --with-xunit --xunit-file=/home/build/reports/xunit.xml $test_suite 2>&1"
+su - build -c "test -e /home/build/proxy_prepare && . /home/build/proxy_prepare; mkdir -p /home/build/reports; cd $itest_env_path; runtest -vv --with-xunit --xunit-file=/home/build/reports/xunit.xml $test_suite 2>&1"
 EOF
 }
 
