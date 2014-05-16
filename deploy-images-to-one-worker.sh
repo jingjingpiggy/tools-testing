@@ -9,9 +9,9 @@
 W=$1
 cd $JENKINS_HOME
 $RSYNC kvm-seed-hdb.tar *-fake $W:$JENKINS_HOME/
-IMAGES=`ls kvm-seed-hda-*-debug`
-for DEBIMG in $IMAGES; do
-  IMG=`echo $DEBIMG | sed 's/-debug//g'`
-  echo deb=$DEBIMG img=$IMG
-  $RSYNC -S $DEBIMG $W:$JENKINS_HOME/$IMG
+IMAGES=`ls kvm-seed-hda-*-mgmt`
+for SRC in $IMAGES; do
+  IMG=`echo $SRC | sed 's/-mgmt//g'`
+  echo src=$SRC dest=$IMG
+  $RSYNC -S $SRC $W:$JENKINS_HOME/$IMG
 done

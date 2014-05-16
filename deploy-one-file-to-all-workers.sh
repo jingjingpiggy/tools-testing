@@ -9,12 +9,17 @@
 # Example contents:
 # JENKINS_HOME=/var/lib/jenkins
 # WORKERS="w1.b.c.d w2.b.c.d ..."
+# DEBUG_WORKERS="w3.b.c.d"
 
 . /etc/jenkins-worker/workers.env
 
 SFILE=$1
 DFILE=$2
+DEBUG_DFILE=$3
 cd $JENKINS_HOME
 for W in $WORKERS ; do
   $RSYNC -S $SFILE $W:$DFILE
+done
+for W in $DEBUG_WORKERS ; do
+  $RSYNC -S $SFILE $W:$DEBUG_DFILE
 done

@@ -1,13 +1,14 @@
 #!/bin/sh
 
 # This copies one HDA to all workers,
-# striping off -debug suffix
-# 1st arg: file with -debug suffix
+# striping off -mgmt suffix
+# 1st arg: file with -mgmt suffix
 
 . /etc/jenkins-worker/workers.env
 
-DEBIMG=$1
-IMG=`echo $DEBIMG | sed 's/-debug//g'`
-echo deb=$DEBIMG img=$IMG
+SRC=$1
+IMG=`echo $SRC | sed 's/-mgmt//g'`
+DEBUG_IMG=`echo $SRC | sed 's/-mgmt/-debug/g'`
+echo src=$SRC img=$IMG debugimg=$DEBUG_IMG
 cd $JENKINS_HOME
-deploy-one-file-to-all-workers.sh $DEBIMG $JENKINS_HOME/$IMG
+deploy-one-file-to-all-workers.sh $SRC $JENKINS_HOME/$IMG $JENKINS_HOME/$DEBUG_IMG
