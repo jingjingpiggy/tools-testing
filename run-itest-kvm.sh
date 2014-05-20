@@ -37,10 +37,6 @@ make_export_proxy_script() {
 set_proxy(){
     make_export_proxy_script
     cat >>$BUILDHOME/run << EOF
-##### enable proxy on openSUSE ####
-if [ -e /etc/sysconfig/proxy ]; then
-sed -i 's/PROXY_ENABLED=.*/PROXY_ENABLED="yes"/' /etc/sysconfig/proxy
-fi
 ##### enable proxy on fedora/centos ####
 sed -i '/^proxy=_none_/d' $TARGETBIN/install_package
 #### export proxy through script proxy_prepare ####
