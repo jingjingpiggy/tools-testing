@@ -1,4 +1,10 @@
 ----------------------------------------------------------------------------
+Wed May 21 05:55:38 UTC 2014 olev.kartau@intel.com - 1.26.0
+
+- Remove 'modify /etc/sysconfig/proxy' part (Sun Lihong)
+- Change deploy scripts to deal with -mgmt files (Olev Kartau)
+
+----------------------------------------------------------------------------
 Wed May  7 09:02:42 UTC 2014 olev.kartau@intel.com - 1.25.0
 
 - Move 'export proxy' to an executable file (Sun Lihong)
