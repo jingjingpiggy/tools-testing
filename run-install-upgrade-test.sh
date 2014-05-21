@@ -96,12 +96,6 @@ additional_init() {
     ###### pass proxy settings into KVM
     setenv_to_run http_proxy https_proxy no_proxy HTTP_PROXY HTTPS_PROXY NO_PROXY
 
-    ##### enable proxy on openSUSE ####
-    cat >> $BUILDHOME/run <<EOF
-if [ -e /etc/sysconfig/proxy ]; then
-sed -i 's/PROXY_ENABLED=.*/PROXY_ENABLED="yes"/' /etc/sysconfig/proxy
-fi
-EOF
     ##### enable proxy on fedora/centos ####
     cat >> $BUILDHOME/run <<EOF
 sed -i '/^proxy=_none_/d' $TARGETBIN/install_package
