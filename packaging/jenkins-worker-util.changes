@@ -1,4 +1,9 @@
 ----------------------------------------------------------------------------
+Wed May 21 08:30:57 UTC 2014 olev.kartau@intel.com - 1.26.1
+
+- Remove "enable proxy on openSUSE" part (Li Jinjing)
+
+----------------------------------------------------------------------------
 Wed May 21 05:55:38 UTC 2014 olev.kartau@intel.com - 1.26.0
 
 - Remove 'modify /etc/sysconfig/proxy' part (Sun Lihong)
