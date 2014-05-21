@@ -228,7 +228,7 @@ fi
 
 distro=$(echo $label|cut -d'_' -f 1|tr [:upper:] [:lower:])
 
-if [ $distro = "ubuntu" ] ; then
+if [ $distro = "ubuntu" -o $distro = "debian" ] ; then
     repo_store="/etc/apt"
     package_manager="dpkg"
     install_repo_parameter="deb $install_repo/$OBS_REPO /"

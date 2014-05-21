@@ -56,7 +56,7 @@ additional_init() {
         projs=${install_package_proj[$i]}
         extra_repo=${install_package_extra_r[$i]}
         if [ -n "$extra_repo" ]; then
-            if [ "$distro" = "ubuntu" ]; then
+            if [ "$distro" = "ubuntu" -o "$distro" = "debian" ]; then
                 extra_repo="deb $extra_repo/$OBS_REPO /"
             else
                 extra_repo="$extra_repo/$OBS_REPO"
