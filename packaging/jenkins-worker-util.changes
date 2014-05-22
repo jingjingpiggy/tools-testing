@@ -1,4 +1,9 @@
 ----------------------------------------------------------------------------
+Thu May 22 05:27:04 UTC 2014 olev.kartau@intel.com - 1.26.2
+
+- Add distro check for Debian system in script (Li Jinjing)
+
+----------------------------------------------------------------------------
 Wed May 21 08:30:57 UTC 2014 olev.kartau@intel.com - 1.26.1
 
 - Remove "enable proxy on openSUSE" part (Li Jinjing)
