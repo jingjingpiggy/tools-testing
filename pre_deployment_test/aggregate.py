@@ -18,11 +18,14 @@ level6dict = lambda : dd(level5dict)
 
 def summary(result_list):
     assert len(result_list) > 0
-    mic_version = result_list[0]['MicVersion'].split('(')[0]
+    try:
+        mic_version = result_list[0]['MicVersion'].split('(')[0]
+    except (IndexError, KeyError) as e:
+        mic_version = ''
     result_count = len(result_list)
     pass_count = failed_count = repeat_count = fixed_count = 0
     for res in result_list:
-        result = res['Result'].strip()
+        result = res.get('Result', '').strip()
         if result == 'Passed' or result.lower().find('diff') != -1:
             pass_count += 1
         elif result == 'Regression':
@@ -53,7 +56,7 @@ def detail(result_list):
                     return res[target]
 
         def _css(result):
-            res = result['Result']
+            res = result.get('Result', '')
             if res in ('Passed', 'Fixed'):
                 return 'success'
             if res in ('Regression',):
@@ -99,10 +102,10 @@ def detail(result_list):
                         for img, d4 in d3.items():
                             result = d4.get(dist)
                             if result:
-                                td = TD(result['Result'],
+                                td = TD(result.get('Result', ''),
                                         1,
-                                        result['Reason'],
-                                        result['LogURL'],
+                                        result.get('Reason', ''),
+                                        result.get('LogURL', ''),
                                         _css(result))
                             else:
                                 td = TD('', 1, '', '', '')
@@ -122,11 +125,11 @@ def detail(result_list):
         distros = set()
         data = level6dict()
         for res in result_list:
-            infra = res['Infra']
-            product = res['Product']
-            buildid = res['BuildID']
-            image = res['Image']
-            distro = res['Distribution']
+            infra = res.get('Infra', '')
+            product = res.get('Product', '')
+            buildid = res.get('BuildID', '')
+            image = res.get('Image', '')
+            distro = res.get('Distribution', '')
 
             distros.add(distro)
             data[infra][product][buildid][image][distro] = res
