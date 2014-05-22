@@ -1,0 +1,71 @@
+#!/bin/sh
+#
+# This file is started by cron inside tester VM instance.
+# This file should be copied to tester VM image during its setup phase.
+# NB! this file is not to be called during regular testing,
+# it is included in git repo only to keep it together with
+# other scripts.
+#
+# This script relies on fact that qemu VM gets 10.0.2.2
+# configured as default GW. We us it to see that network
+# connectivity has reached good state.
+#
+
+# set up PATH in case we dont have it (when called from crontab)
+PATH=/sbin:/usr/sbin:/usr/local/sbin:/root/bin:/usr/local/bin:/usr/bin:/bin
+export PATH
+
+OUT=/home/build/output
+
+terminate() {
+/bin/sync
+/bin/umount /home
+if grep -q "Debian GNU" /etc/os-release ; then
+  /sbin/poweroff -f -d
+else
+  /sbin/poweroff --force --poweroff
+fi
+}
+
+runtest() {
+if [ -x /home/build/run ]; then
+  sleep 10
+  /home/build/run > $OUT 2>&1
+  echo "
+$?" >> $OUT
+  terminate
+fi
+}
+
+timer=0
+while [ $timer -lt 300 ]; do
+  if mountpoint /home ; then
+    if grep -q 0202000A /proc/net/route ; then
+      runtest
+      exit 0
+    fi
+  fi
+  sleep 5
+  timer=$((timer + 5))
+done
+
+# if we reach here, timeout occured without conditions
+# becoming true, we reboot for retry, but not endlessly,
+# checking reboot counter we keep in hdb
+
+cntfile="/home/bootcnt"
+
+if mountpoint /home ; then
+  bootcnt=0
+  if [ -f $cntfile ]; then
+    bootcnt=`cat $cntfile`
+    if [ $bootcnt -gt 5 ]; then
+      terminate
+    fi
+  fi
+  bootcnt=$((bootcnt+1))
+  echo "$bootcnt" > $cntfile
+  /sbin/reboot
+else
+  terminate
+fi
