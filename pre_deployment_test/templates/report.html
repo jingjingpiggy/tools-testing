@@ -20,6 +20,7 @@
         <h1>Pre-deployment Testing Report</h1>
         <ul>
             <li>Version: {{summary.Version}}</li>
+            <li>Install From: <a href="{{ mic_repo }}">{{ mic_repo }}</a></li>
             <li>Report Time: {{summary["Report Time"]}}</li>
             {% for name, value in summary.items() %}
                 {% if name not in ("Version", "Report Time") %}

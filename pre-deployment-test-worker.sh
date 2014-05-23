@@ -130,6 +130,39 @@ usage() {
     echo "        matched, image will be copied out from VM instance into "
     echo "        Jenkins job's workspace. The format is the same as grep -E."
 }
+
+store_repo(){
+    proj=$1
+    depends_proj=$2
+    extra_repo=$3
+    if echo "$proj" | grep "Tools:/Devel" ;then
+        repo_str="http://download.otctools.jf.intel.com/$proj"
+    elif echo "$proj" | grep "Tools" ;then
+        repo_str="http://download.otctools.jf.intel.com/$proj"
+    elif echo $proj | grep "Tools-mic-" ;then
+        repo_str="http://download.otctools.jf.intel.com/home:/tester:/$proj/"
+    else
+        repo_str=''
+    fi
+    if [ -n "$depends_proj" ];then
+        if echo "$depends_proj" | grep "Tools:/Devel" ;then
+            if [ -z "$repo_str" ];then
+                repo_str="http://download.otctools.jf.intel.com/$depends_proj"
+            else
+                repo_str="$repo_str;http://download.otctools.jf.intel.com/$depends_proj"
+            fi
+        fi
+    fi
+    if [ -n "$extra_repo" ];then
+        if [ -z "$repo_str" ];then
+          repo_str="$extra_repo"
+        else
+          repo_str="$repo_str;$extra_repo"
+        fi
+    fi
+    echo $repo_str >> mic.repo
+}
+
 ########
 # Main
 ########
@@ -149,6 +182,9 @@ do
         pack=$(echo $2|awk -F',' '{print $2}')
         depends_proj=$(echo $2|awk -F',' '{print $3}')
         extra_repo=$(echo $2|awk -F',' '{print $4}')
+        if echo $pack | grep "mic" ;then
+            store_repo "${proj}" "${depends_proj}" "$extra_repo"
+        fi
         add_pack "${proj}|${depends_proj}" "$pack" "$extra_repo"
         shift
         ;;

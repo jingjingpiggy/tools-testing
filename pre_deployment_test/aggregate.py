@@ -164,11 +164,12 @@ def detail(result_list):
         }
 
 
-def html_report(results):
+def html_report(results, mic_repo):
     env = Environment(loader=PackageLoader('pre_deployment_test', 'templates'))
     template = env.get_template('report.html')
     html = template.render(
         summary=summary(results),
+        mic_repo=mic_repo,
         **detail(results))
     with open('index.html', 'w') as fobj:
         fobj.write(html)
@@ -183,17 +184,23 @@ def load(filename):
         res[key.strip()] = val.strip()
     return res
 
+def get_mic_install_repo(repo_file):
+    with open(repo_file) as repo:
+        return repo.read().strip()
+
 def parse_args():
     "Parse arguments"
     parser = argparse.ArgumentParser()
     parser.add_argument('results', nargs='+')
+    parser.add_argument('-r','--repo')
     return parser.parse_args()
 
 def main():
     "Main"
     args = parse_args()
+    mic_repo = get_mic_install_repo(args.repo)
     results = [ load(i) for i in args.results ]
-    html_report(results)
+    html_report(results, mic_repo)
 
 if __name__ == '__main__':
     main()
