@@ -30,7 +30,7 @@ chmod 644 $KVM_HDA
 qemu-kvm -name $label -M pc \
     -cpu $KVM_CPU -m 2048 $netcmd \
     -drive file=$KVM_HDA \
-    -drive file=$KVM_HDB $vnccmd
+    -drive file=$KVM_HDB $vnccmd -nographic
 # set updated image back to read-only, move to Jenkins home as .new
 chmod 444 $KVM_HDA
 mv $KVM_HDA $JENKINS_HOME/kvm-seed-hda-$label.new

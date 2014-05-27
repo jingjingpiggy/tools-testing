@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 #
 # This file is started by cron inside tester VM instance.
 # This file should be copied to tester VM image during its setup phase.
@@ -15,12 +15,10 @@
 PATH=/sbin:/usr/sbin:/usr/local/sbin:/root/bin:/usr/local/bin:/usr/bin:/bin
 export PATH
 
-OUT=/home/build/output
-
 # Regular testing session terminates with poweroff as shutdown
 # may take extra time on some distros and regular testing session
 # does not care about file system state as HDA is used in snapshot
-# mode never modified.
+# mode and never modified.
 # However, in some cases, like distro update session,
 # the clean shutdown is desired, so we have flag for doing it.
 terminate() {
@@ -40,9 +38,8 @@ fi
 runtest() {
 if [ -x /home/build/run ]; then
   sleep 10
-  /home/build/run > $OUT 2>&1
-  echo "
-$?" >> $OUT
+  /home/build/run
+  echo "$?" > /home/build/testresult
   terminate
 fi
 }

@@ -130,7 +130,7 @@ launch_kvm() {
     /usr/bin/timeout 12h $numacmd qemu-kvm -name $label -M pc \
         -cpu $KVM_CPU -m $KVM_MEMSZ $netcmd \
         -drive file=$KVM_SEED_HDA,snapshot=on \
-        -drive file=$KVM_HDB $vnccmd
+        -drive file=$KVM_HDB $vnccmd -nographic
     date
 }
 
@@ -144,8 +144,6 @@ copy_back_from_kvm() {
     # Mount 2nd disk of VM again to copy the test result and logs
     sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
 
-    # make test run output visible in Jenkins job output
-    [ "$(ls -A $BUILDHOME/output)" ] && cat "$BUILDHOME/output"
     [ -f $BUILDHOME/syslog ] && cat $BUILDHOME/syslog
     [ -f $BUILDHOME/dmesg ] && cat $BUILDHOME/dmesg
 
@@ -155,8 +153,8 @@ copy_back_from_kvm() {
 
     [ -d $report_path ] && [ "$(ls -A $report_path/)" ] && cp -r $report_path/* $WORKSPACE/reports/
 
-    # examine KVM session return value, written on last line, to form exit value,
-    RETVAL=`tail -1 "$BUILDHOME/output"`
+    # examine tester session exit value
+    RETVAL=`cat "$BUILDHOME/testresult"`
     if [ "$RETVAL" = 0 ]; then
         echo RUN SUCCESS
         exit 0
