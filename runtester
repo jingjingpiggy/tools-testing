@@ -17,13 +17,23 @@ export PATH
 
 OUT=/home/build/output
 
+# Regular testing session terminates with poweroff as shutdown
+# may take extra time on some distros and regular testing session
+# does not care about file system state as HDA is used in snapshot
+# mode never modified.
+# However, in some cases, like distro update session,
+# the clean shutdown is desired, so we have flag for doing it.
 terminate() {
-/bin/sync
-/bin/umount /home
-if grep -q "Debian GNU" /etc/os-release ; then
-  /sbin/poweroff -f -d
+if [ -f /home/build/need_shutdown ]; then
+  /sbin/shutdown -h now
 else
-  /sbin/poweroff --force --poweroff
+  /bin/sync
+  /bin/umount /home
+  if grep -q "Debian GNU" /etc/os-release ; then
+    /sbin/poweroff -f -d
+  else
+    /sbin/poweroff --force --poweroff
+  fi
 fi
 }
 

@@ -6,6 +6,10 @@ additional_init() {
     # to do some additional initial work
     BUILDHOME=$1
 
+    # create flag for runtester script
+    # (the one that kicks tester going) indicating we need
+    # clean shutdown instead of sudden poweroff
+    touch $BUILDHOME/need_shutdown
     # add to run script that will be auto-started in Virtual machine
     # we re-use first part of install_package that runs "update all",
     # that is all we want this time
