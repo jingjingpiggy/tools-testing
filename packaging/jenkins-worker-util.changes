@@ -1,4 +1,12 @@
 ----------------------------------------------------------------------------
+Tue May 27 12:15:33 UTC 2014 olev.kartau@intel.com - 1.27.0
+
+- Update of seed VM images requires clean shutdown (Olev Kartau)
+- Add runtester script to git repository (Olev Kartau)
+- Add mic installed repo in pre-deployment testing report (Huanhuan Li)
+- Fix keyeror about 'LogURL' (Huanhuan Li)
+
+----------------------------------------------------------------------------
 Thu May 22 05:27:04 UTC 2014 olev.kartau@intel.com - 1.26.2
 
 - Add distro check for Debian system in script (Li Jinjing)
