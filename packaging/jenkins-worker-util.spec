@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 Name:       jenkins-worker-util
 Summary:    Utils for Otctools Jenkins worker
-Version:    1.27.0
+Version:    1.28.0
 Release:    1
 Group:      Development/Tools/Other
 License:    Intel Proprietary
