@@ -12,7 +12,7 @@ Source0:    %{name}-%{version}.tar.gz
 BuildRequires:  coreutils
 BuildRequires:  python-devel python-setuptools
 
-Requires: coreutils sudo git-core make osc kvm util-linux sysvinit-tools tar python-Jinja2 python-setuptools socat
+Requires: coreutils sudo git-core make osc kvm util-linux sysvinit-tools tar python-Jinja2 python-setuptools socat buffer
 %ifarch x86_64
 Requires: numactl
 %endif
