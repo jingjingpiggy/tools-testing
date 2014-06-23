@@ -1,4 +1,9 @@
 ----------------------------------------------------------------------------
+Mon Jun 23 12:49:29 UTC 2014 olev.kartau@intel.com - 1.28.1
+
+- Pipe tester VM output through buffering (Olev Kartau)
+
+----------------------------------------------------------------------------
 Mon Jun  2 13:59:29 UTC 2014 olev.kartau@intel.com - 1.28.0
 
 - Tester VM output comes to stdout and directly to Jenkins (Olev Kartau)
