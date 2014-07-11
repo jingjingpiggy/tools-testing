@@ -304,7 +304,8 @@ def build(apiurl, project, package, timeout):
             splitted = pkginfo.split(';')
             pkg_status = [status for status in splitted[1:]
                             if status not in ('excluded', 'succeeded',
-                                              'disabled', 'failed')]
+                                              'disabled', 'failed',
+                                              'unresolvable')]
             statuses.extend(pkg_status)
             package = splitted[0]
             if [st for st in pkg_status if st not in ('building', 'scheduled',
