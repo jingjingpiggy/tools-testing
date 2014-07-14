@@ -20,6 +20,9 @@ elif [ -f /etc/redhat-release ]; then
 elif [ -f /etc/SuSE-release ]; then
     REL=`cat /etc/SuSE-release | head -1 | cut -d' ' -f 1`
     VER=`cat /etc/SuSE-release | head -1 | cut -d' ' -f 2`
+elif [ -f /etc/arch-release ]; then
+    REL="Arch"
+    VER="0.0"
 fi
 
 echo "$REL-$VER"

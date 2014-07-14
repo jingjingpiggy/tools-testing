@@ -213,7 +213,7 @@ fi
 
 # Get list of built binary packages
 safeosc ls -b "$TARGET_PROJECT" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.list"
-PACKAGES=`sed -n 's/^\(.*\)\.\(deb\|rpm\)$/\1/p' "$WORKSPACE/packages.list"|tr '\n' ' '`
+PACKAGES=`sed -n 's/^\(.*\)\.\(deb\|rpm\|pkg.tar.xz\)$/\1/p' "$WORKSPACE/packages.list"|tr '\n' ' '`
 if [ -z "$PACKAGES" ]; then
   echo "Error: No packages were built by OBS"
   exit 1
