@@ -1,4 +1,9 @@
 ----------------------------------------------------------------------------
+Thu Jul 17 08:42:31 UTC 2014 olev.kartau@intel.com - 1.29.0
+
+- build-package: gracefully handle 'unresolved' state (Markus Lehtonen)
+
+----------------------------------------------------------------------------
 Mon Jun 23 12:49:29 UTC 2014 olev.kartau@intel.com - 1.28.1
 
 - Pipe tester VM output through buffering (Olev Kartau)
