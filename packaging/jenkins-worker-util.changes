@@ -1,4 +1,10 @@
 ----------------------------------------------------------------------------
+Fri Aug 29 06:51:32 UTC 2014 2014 olev.kartau@intel.com - 1.30.0
+
+- Add Arch Linux support
+- run-test-kvm.sh: Retry call to install_package if failing
+
+----------------------------------------------------------------------------
 Thu Jul 17 08:42:31 UTC 2014 olev.kartau@intel.com - 1.29.0
 
 - build-package: gracefully handle 'unresolved' state (Markus Lehtonen)
