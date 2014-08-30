@@ -326,8 +326,8 @@ def build(apiurl, project, package, timeout):
                 infos = state.firstChild.getElementsByTagName('serviceinfo')
                 if infos:
                     info = infos[0]
-                    error = info.getElementsByTagName('error')[0]
                     if info.getAttribute('code') == 'failed':
+                        error = info.getElementsByTagName('error')[0]
                         print "OBS source service failed:"
                         print error.childNodes[0].nodeValue
                         return 1
