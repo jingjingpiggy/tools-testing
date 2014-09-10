@@ -13,9 +13,7 @@ BuildRequires:  coreutils
 BuildRequires:  python-devel python-setuptools
 
 Requires: coreutils sudo git-core make osc kvm util-linux sysvinit-tools tar python-Jinja2 python-setuptools socat buffer
-%ifarch x86_64
-Requires: numactl
-%endif
+Recommends: numactl
 
 %if 0%{?suse_version} > 1220
 BuildRequires:   shadow
