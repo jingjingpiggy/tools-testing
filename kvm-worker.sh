@@ -108,7 +108,7 @@ check_kvm_args() {
 
 launch_kvm() {
     numacmd=""
-    if [ $(which numactl) ]; then
+    if which numactl; then
       # Bind to CPUs and mem of one node on a NUMA system.
       numanodes=`numactl --hardware | grep 'available:' | awk '{print $2}'`
       if [ $numanodes -gt 1 ]; then

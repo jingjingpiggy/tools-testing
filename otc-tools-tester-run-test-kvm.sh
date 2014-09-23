@@ -34,8 +34,9 @@ try=1
 while [ \$try -lt 5 ]
 do
  echo "====== Starting \$try. attempt to install packages"
- $TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES" "\$EXTRA_REPOS" ""
- [ \$? -eq 0 ] && break
+ if $TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES" "\$EXTRA_REPOS" ""
+   then break
+ fi
  try=\$((try + 1))
  sleep 5
 done
