@@ -204,6 +204,11 @@ if [ "$BSTAT" = "disabled" -a "$SKIP_DISABLED_BUILDS" ]; then
     exit 0
 fi
 
+if [ "$BSTAT" = "excluded" ]; then
+    echo "$PACKAGE in $OBS_REPO/$OBS_ARCH is excluded, skipping testing"
+    exit 0
+fi
+
 # Get OBS build log and show it
 safeosc remotebuildlog "$TARGET_PROJECT" $PACKAGE "$OBS_REPO" "$OBS_ARCH"
 
