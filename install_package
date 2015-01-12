@@ -85,7 +85,7 @@ if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" $srclist
    apt-get update
    [ "$noupd" != "noupdate" ] && apt-get upgrade -y --force-yes
-   install_pkgs "apt-get install -y --force-yes" "$testreq_packages" "$packages"
+   install_pkgs "apt-get install -q -y --force-yes" "$testreq_packages" "$packages"
 elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
 # OpenSuse
    run_on="opensuse"
