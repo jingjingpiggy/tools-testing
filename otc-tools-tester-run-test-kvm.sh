@@ -1,4 +1,4 @@
-#!/bin/sh -xeu
+#!/bin/sh -eu
 . $(dirname $0)/kvm-worker.sh
 
 Cleanup () {
@@ -124,6 +124,8 @@ if [ "$BRANCH_PREFIX" != "devel" -a "$BRANCH_PREFIX" != "master" \
     exit 1
 fi
 
+show_heading "     Get source and reset git state:"
+set -x
 # Get source tree and reset it to proper REF
 SRCDIR=`echo $GERRIT_PROJECT |sed 's/.*\/\([^/]\+\)/\1/'`
 if [ ! -d "$SRCDIR/.git" ] ; then
@@ -190,6 +192,9 @@ else
     set +e
     arg_projects="--tproject $TARGET_PROJECT"
     [ -n "$SOURCE_PROJECT" ] && arg_projects="--sproject $SOURCE_PROJECT $arg_projects"
+    set +x
+    show_heading "     Send to OBS for building:"
+    set -x
     timeout 60m build-package $arg_projects --package "$PACKAGE" $files
     buildval=$?
     [ -f $pkg_dir/_service ] && rm $pkg_dir/_service
@@ -197,6 +202,9 @@ else
 fi
 
 # Get OBS build status
+set +x
+show_heading "     OBS build status:"
+set -x
 BSTAT=`safeosc results -r "$OBS_REPO" -a "$OBS_ARCH" "$TARGET_PROJECT" $PACKAGE | awk '{print $NF}'`
 
 if [ "$BSTAT" = "disabled" -a "$SKIP_DISABLED_BUILDS" ]; then
@@ -210,6 +218,9 @@ if [ "$BSTAT" = "excluded" ]; then
 fi
 
 # Get OBS build log and show it
+set +x
+show_heading "     OBS build log:"
+set -x
 safeosc remotebuildlog "$TARGET_PROJECT" $PACKAGE "$OBS_REPO" "$OBS_ARCH"
 
 if [ "$BSTAT" = "failed" ]; then
@@ -218,6 +229,9 @@ if [ "$BSTAT" = "failed" ]; then
 fi
 
 # Get list of built binary packages
+set +x
+show_heading "     OBS packages that were built:"
+set -x
 safeosc ls -b "$TARGET_PROJECT" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.list"
 PACKAGES=`sed -n 's/^\(.*\)\.\(deb\|rpm\|pkg.tar.xz\)$/\1/p' "$WORKSPACE/packages.list"|tr '\n' ' '`
 if [ -z "$PACKAGES" ]; then

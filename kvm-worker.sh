@@ -32,6 +32,7 @@ trap handle_exec INT TERM EXIT ABRT
 
 
 prepare_kvm() {
+    set +x
     # Prepare KVM hda and hdb images
     # It sets several global variables for other functions to use:
     # KVM_HDB: hdb image path
@@ -48,7 +49,6 @@ prepare_kvm() {
         if test "${KVM_ROOT_ON_DISK+defined}" ; then
             rm -fr $KVM_ROOT_ON_DISK
         fi
-        date
     }
     at_exec cleanup_tmp_kvm_root
 
@@ -90,9 +90,11 @@ EOF
 
     $additional_init $BUILDHOME
 
+    show_heading "     Tester script to be run in VM:"
     cat $BUILDHOME/run
+    echo "=============================================="
     $UMOUNT $BUILDMOUNT
-    date
+    set -x
 }
 
 check_kvm_args() {
@@ -107,6 +109,7 @@ check_kvm_args() {
 }
 
 launch_kvm() {
+    set +x
     cpu_opt=$(compose_cpu_opt $OBS_ARCH)
     mem_opt=$(compose_mem_opt)
     net_opt=$(compose_net_opt)
@@ -114,6 +117,9 @@ launch_kvm() {
     numa_opt=$(compose_numa_opt)
     # Run tests by starting KVM, executes /home/build/run and shuts down.
     # Pipe output through buffering utility to avoid high load on server.
+    date
+    show_heading "     START tester VM:"
+    set -x
     /usr/bin/timeout 12h $numa_opt qemu-kvm -name $label -M pc \
         $cpu_opt $mem_opt $net_opt \
         -drive file=$KVM_SEED_HDA,snapshot=on \
@@ -122,6 +128,7 @@ launch_kvm() {
 }
 
 copy_back_from_kvm() {
+    set +x
     if [ $# -eq 0 ]; then
         report_path=$BUILDHOME/reports
     else
@@ -131,7 +138,9 @@ copy_back_from_kvm() {
     # Mount 2nd disk of VM again to copy the test result and logs
     sudo mount -o loop,offset=$HDB_OFFSET -t ext4 -v $KVM_HDB $BUILDMOUNT
 
+    show_heading "     Tail of syslog from tester:"
     [ -f $BUILDHOME/syslog ] && cat $BUILDHOME/syslog
+    show_heading "     Tail of dmesg from tester:"
     [ -f $BUILDHOME/dmesg ] && cat $BUILDHOME/dmesg
 
     # re-create directory for reports
@@ -149,6 +158,7 @@ copy_back_from_kvm() {
         echo RUN FAIL
         exit 1
     fi
+    set -x
 }
 
 target_project_basename() {
@@ -236,4 +246,11 @@ setenv_to_run() {
             fi
         done
     fi
+}
+
+show_heading() {
+  heading=$1
+  echo "=============================================="
+  echo "$heading"
+  echo "=============================================="
 }
