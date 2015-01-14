@@ -107,31 +107,17 @@ check_kvm_args() {
 }
 
 launch_kvm() {
-    numacmd=""
-    if which numactl; then
-      # Bind to CPUs and mem of one node on a NUMA system.
-      numanodes=`numactl --hardware | grep 'available:' | awk '{print $2}'`
-      if [ $numanodes -gt 1 ]; then
-        idx=$((EXECUTOR_NUMBER%numanodes))
-        numacmd="numactl --preferred=$idx --cpunodebind=$idx"
-      fi
-    fi
-
-    KVM_MEMSZ_DEFAULT=2048
-    KVM_CPU=$(kvm_cpu_name $OBS_ARCH)
-
-    if [ ! "${KVM_MEMSZ+defined}" ] ; then
-        KVM_MEMSZ=$KVM_MEMSZ_DEFAULT
-    fi
-
-    netcmd=$(kvm_netcmd)
-    vnccmd=$(kvm_vnccmd)
+    cpu_opt=$(compose_cpu_opt $OBS_ARCH)
+    mem_opt=$(compose_mem_opt)
+    net_opt=$(compose_net_opt)
+    vnc_opt=$(compose_vnc_opt)
+    numa_opt=$(compose_numa_opt)
     # Run tests by starting KVM, executes /home/build/run and shuts down.
     # Pipe output through buffering utility to avoid high load on server.
-    /usr/bin/timeout 12h $numacmd qemu-kvm -name $label -M pc \
-        -cpu $KVM_CPU -m $KVM_MEMSZ $netcmd \
+    /usr/bin/timeout 12h $numa_opt qemu-kvm -name $label -M pc \
+        $cpu_opt $mem_opt $net_opt \
         -drive file=$KVM_SEED_HDA,snapshot=on \
-        -drive file=$KVM_HDB $vnccmd -nographic | buffer -s 4096
+        -drive file=$KVM_HDB $vnc_opt -nographic | buffer -s 4096
     date
 }
 
@@ -171,16 +157,16 @@ target_project_basename() {
  echo "Tools-$safename"
 }
 
-kvm_cpu_name() {
+compose_cpu_opt() {
  arch=$1
  if [ $arch = "i586" ]; then
-   echo "pentium3"
+   echo "-cpu pentium3"
  else
-   echo "core2duo"
+   echo "-cpu core2duo"
  fi
 }
 
-kvm_netcmd() {
+compose_net_opt() {
   # create unique MAC address from static part=52, node IP, slot number, process number
   # node IP last octet comes from SSH_CONNECTION="10.237.71.24 44908 10.237.71.173 22"
   nodenum=`echo "$SSH_CONNECTION" | awk '{print $3}' | awk -F\. '{printf("%02x", $4);}'`
@@ -196,7 +182,7 @@ kvm_netcmd() {
   echo "-net nic,macaddr=52:$nodenum:$slotnum:$p1x:$p2x:$p3x -net user"
 }
 
-kvm_vnccmd() {
+compose_vnc_opt() {
   # find free VNC number.
   # Start with Jenkins slot number. If this socket is taken,
   # increment to next range area. We assume max 20 slots per Jenkins worker.
@@ -213,6 +199,29 @@ kvm_vnccmd() {
       vncnum=$((vncnum + slots_range))
   done
   echo "-vnc :$vncnum"
+}
+
+compose_numa_opt() {
+  # Bind to CPUs and mem of one node on a NUMA system.
+  opt=""
+  if which numactl; then
+    numanodes=`numactl --hardware | grep 'available:' | awk '{print $2}'`
+    if [ $numanodes -gt 1 ]; then
+      idx=$((EXECUTOR_NUMBER%numanodes))
+      opt="numactl --preferred=$idx --cpunodebind=$idx"
+    fi
+  fi
+
+  echo $opt
+}
+
+compose_mem_opt() {
+  KVM_MEMSZ_DEFAULT=2048
+  if [ ! "${KVM_MEMSZ+defined}" ] ; then
+    KVM_MEMSZ=$KVM_MEMSZ_DEFAULT
+  fi
+
+  echo "-m $KVM_MEMSZ"
 }
 
 setenv_to_run() {
