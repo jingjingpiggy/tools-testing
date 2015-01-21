@@ -1,4 +1,11 @@
 ----------------------------------------------------------------------------
+Wed Jan 21 11:27:30 UTC 2015 olev.kartau@intel.com - 1.32.0
+
+- Reduce debug output, add headings in output
+- Re-factor launch_kvm and how options are composed
+- Add -q to apt-get upgrade options to avoid dialogues
+
+----------------------------------------------------------------------------
 Mon Nov 10 11:32:11 UTC 2014 olev.kartau@intel.com - 1.31.0
 
 - otc-tools-tester-run-test-kvm.sh: skip excluded targets (Markus Lehtonen)
