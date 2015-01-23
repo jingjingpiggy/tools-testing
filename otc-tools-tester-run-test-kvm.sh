@@ -144,12 +144,14 @@ if [ "$EVENT" = 'ref updated' -a "$BRANCH_PREFIX" != "test" ] ; then # ref updat
     [ "$GERRIT_REFNAME" = "master" ] && TARGET_PROJECT=$MAIN_PROJECT
     [ "$GERRIT_REFNAME" = "devel" ] && TARGET_PROJECT="$MAIN_PROJECT:Devel"
     [ "$BRANCH_PREFIX" = "release" ] && TARGET_PROJECT="$MAIN_PROJECT:Pre-release"
+    INSTALL_PACKAGES_FROM=$TARGET_PROJECT
     SPROJ=`echo "$TARGET_PROJECT" | sed 's/:/:\//g'`
 else # patchset created or test-<target branch> ref updated - upload to the linked project
     # branch -> source repo mapping
     [ "$GERRIT_BRANCH" = "master" ] && SOURCE_PROJECT=$MAIN_PROJECT
     [ "$GERRIT_BRANCH" = "devel" ] && SOURCE_PROJECT="$MAIN_PROJECT:Devel"
     [ "$BRANCH_PREFIX" = "release" -o "$GERRIT_BRANCH" = "release" ] && SOURCE_PROJECT="$MAIN_PROJECT:Pre-release"
+    INSTALL_PACKAGES_FROM=$SOURCE_PROJECT
     TBNAME=$(target_project_basename "$GERRIT_PROJECT")
     TARGET_PROJECT_NAME="$TBNAME$NAME_SUFFIX-$SUFFIX"
     TARGET_PROJECT="home:tester:$TARGET_PROJECT_NAME"
@@ -228,14 +230,14 @@ if [ "$BSTAT" = "failed" ]; then
     exit 1
 fi
 
-# Get list of built binary packages
+# Get list of packages to be installed
 set +x
-show_heading "     OBS packages that were built:"
+show_heading "     OBS packages to be installed:"
 set -x
-safeosc ls -b "$TARGET_PROJECT" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.list"
+safeosc ls -b "$INSTALL_PACKAGES_FROM" -r "$OBS_REPO" -a "$OBS_ARCH" > "$WORKSPACE/packages.list"
 PACKAGES=`sed -n 's/^\(.*\)\.\(deb\|rpm\|pkg.tar.xz\)$/\1/p' "$WORKSPACE/packages.list"|tr '\n' ' '`
 if [ -z "$PACKAGES" ]; then
-  echo "Error: No packages were built by OBS"
+  echo "Error: No packages listed in OBS project $INSTALL_PACKAGES_FROM"
   exit 1
 fi
 
