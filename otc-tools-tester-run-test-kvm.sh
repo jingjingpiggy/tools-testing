@@ -136,6 +136,7 @@ cd $SRCDIR
 git clean -xdf
 git fetch origin $REF_TO_FETCH
 git reset --hard FETCH_HEAD
+git submodule sync
 git submodule update --init
 
 if [ "$EVENT" = 'ref updated' -a "$BRANCH_PREFIX" != "test" ] ; then # ref updated - upload to base
