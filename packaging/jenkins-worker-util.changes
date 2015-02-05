@@ -1,4 +1,9 @@
 ----------------------------------------------------------------------------
+Thu Feb  5 12:33:07 UTC 2015 olev.kartau@intel.com - 1.33.0
+
+- Install all packages in both cases
+
+----------------------------------------------------------------------------
 Wed Jan 21 11:27:30 UTC 2015 olev.kartau@intel.com - 1.32.0
 
 - Reduce debug output, add headings in output
