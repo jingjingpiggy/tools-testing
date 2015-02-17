@@ -1,4 +1,10 @@
 ----------------------------------------------------------------------------
+Tue Feb 17 11:33:47 UTC 2015 olev.kartau@intel.com - 1.34.0
+
+- run-test-kvm.sh: keep git submodule URLs up-to-date (Markus Lehtonen)
+- run-test-kvm: skip tests if target repository is not configured (Markus Lehtonen)
+
+----------------------------------------------------------------------------
 Thu Feb  5 12:33:07 UTC 2015 olev.kartau@intel.com - 1.33.0
 
 - Install all packages in both cases
