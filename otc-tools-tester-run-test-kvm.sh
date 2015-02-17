@@ -204,6 +204,12 @@ else
     exit $buildval
 fi
 
+# Check if the repository exists
+if ! safeosc repos "$TARGET_PROJECT" | grep -q -e "^$OBS_REPO\s\s*$OBS_ARCH"; then
+    echo "Target $OBS_REPO/$OBS_ARCH does not exist in $TARGET_PROJECT, skipping testing"
+    exit 0
+fi
+
 # Get OBS build status
 set +x
 show_heading "     OBS build status:"
