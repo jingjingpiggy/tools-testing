@@ -130,7 +130,7 @@ set -x
 SRCDIR=`echo $GERRIT_PROJECT |sed 's/.*\/\([^/]\+\)/\1/'`
 if [ ! -d "$SRCDIR/.git" ] ; then
     [ -d "$SRCDIR" ] && rm -rf $SRCDIR
-    git clone ssh://Gerrit/$GERRIT_PROJECT
+    [ -z "$GIT_URL" ] && git clone ssh://Gerrit/$GERRIT_PROJECT || git clone $GIT_URL
 fi
 cd $SRCDIR
 git clean -xdf
