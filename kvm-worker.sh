@@ -84,9 +84,10 @@ trap End INT TERM EXIT ABRT
 EOF
     chmod a+x $BUILDHOME/run
 
-    # copy scripts that run inside KVM session
+    # copy scripts and config that are needed in KVM session, into VM HDB
     mkdir -p $BUILDHOMEBIN
     cp /usr/bin/install_package /usr/bin/tools-testing-what-release.sh /usr/bin/run_tests $BUILDHOMEBIN
+    cp -a /etc/tools-tester.d $BUILDHOME/
 
     $additional_init $BUILDHOME
 

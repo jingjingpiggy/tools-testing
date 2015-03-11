@@ -1,10 +1,15 @@
 #!/bin/sh -xeu
 
+ubuntu_repolist=/etc/apt/sources.list
+arch_repolist=/etc/pacman.d/mirrorlist
+suse_repodir=/etc/zypp/repos.d
+fedora_repodir=/etc/yum.repos.d
+
 create_rpm_repo() {
  reponame=$1
  url=$2
 
- repofile="/etc/yum.repos.d/$reponame.repo"
+ repofile="$fedora_repodir/$reponame.repo"
  cat > $repofile <<EOF
 [$reponame]
 name=$reponame
@@ -61,11 +66,23 @@ add_extra_repos() {
      # same file, so no need to check duplicate repo
      create_rpm_repo $reponame $r
    elif [ $r_on = "arch" ] ; then
-     echo "[$reponame]" >>  $rlist
      echo "$e_repos" >>  $rlist
    fi
  done
  IFS=$OLDIFS
+}
+
+delete_all_repos() {
+ r_on=$1
+ if [ $r_on = "ubuntu" ] ; then
+   rm -f $ubuntu_repolist
+ elif [ $r_on = "opensuse" ] ; then
+   rm -f $suse_repodir/*
+ elif [ $r_on = "fedora" ] ; then
+   rm -f $fedora_repodir/*
+ elif [ $r_on = "arch" ] ; then
+   rm -f $arch_repolist
+ fi
 }
 
 project="$1"
@@ -77,16 +94,16 @@ extra_repos="$6"
 noupd="$7"
 
 if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
-# Ubuntu
+# Ubuntu or Debian
    run_on="ubuntu"
-   srclist="/etc/apt/sources.list.d/Tools.list"
+   srclist=$ubuntu_repolist
    [ -n "$project" ] && echo "deb http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ /" >  $srclist
    [ -n "$sproject" -a "/home:/tester:/$project" != "$sproject" ] && echo "deb http://download.otctools.jf.intel.com/$sproject/$repo/ /" >> $srclist
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" $srclist
    apt-get update
    [ "$noupd" != "noupdate" ] && apt-get upgrade -y --force-yes
    install_pkgs "apt-get install -q -y --force-yes" "$testreq_packages" "$packages"
-elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
+elif [ -x /usr/bin/zypper -a -d $suse_repodir ] ; then
 # OpenSuse
    run_on="opensuse"
    if [ -n "$project" ]; then
@@ -103,10 +120,10 @@ elif [ -x /usr/bin/zypper -a -d /etc/zypp/repos.d ] ; then
    zypper --non-interactive ref || true
    [ "$noupd" != "noupdate" ] && zypper --non-interactive up
    install_pkgs "zypper --non-interactive install" "$testreq_packages" "$packages"
-elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d /etc/yum.repos.d ] ; then
+elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d $fedora_repodir ] ; then
 # Fedora
    run_on="fedora"
-   srclist="/etc/yum.repos.d/otctools.repo"
+   #srclist="/etc/yum.repos.d/otctools.repo"
    url="http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/"
    [ -n "$project" ] && create_rpm_repo $project $url
    url="http://download.otctools.jf.intel.com/$sproject/$repo/"
@@ -118,7 +135,7 @@ elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d /etc/yum.repos.d ] ; then
 elif [ -x /usr/bin/pacman -a -d /etc/pacman.d ] ; then
 # Arch
    run_on="arch"
-   srclist="/etc/pacman.conf"
+   srclist=$arch_repolist
    reponame=`echo "home_tester_"$project"_"$repo`
    [ -n "$project" ] && echo "[$reponame]" >>  $srclist
    [ -n "$project" ] && echo "Server = http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/\$arch/" >>  $srclist
@@ -129,3 +146,7 @@ elif [ -x /usr/bin/pacman -a -d /etc/pacman.d ] ; then
    [ "$noupd" != "noupdate" ] && pacman --noconfirm -Su
    install_pkgs "pacman --noconfirm -S" "$testreq_packages" "$packages"
 fi
+install_status=$?
+# if clean state is requested, delete repo config
+[ -f /home/build/need_shutdown ] && delete_all_repos $run_on
+exit $install_status

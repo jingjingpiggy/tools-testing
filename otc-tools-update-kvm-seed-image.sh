@@ -14,7 +14,12 @@ additional_init() {
     # we re-use first part of install_package that runs "update all",
     # that is all we want this time
     cat >> $BUILDHOME/run << EOF
-$TARGETBIN/install_package "" "" "" "" "" "" ""
+if [ -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
+  OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
+  OSREL2=\`echo \$OSREL | sed s/-/_/g\`
+  ADD_REPOS=\`egrep "^(\$OSREL|\$OSREL2)\\s*:" /home/build/tools-tester.d/base-repos*.conf | cut -d':' -f 2-\`
+fi
+$TARGETBIN/install_package "" "" "" "" "" "\$ADD_REPOS" ""
 EOF
 }
 

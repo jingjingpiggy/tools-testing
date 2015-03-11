@@ -14,6 +14,7 @@ additional_init() {
     # create run script that will be auto-started in Virtual machine
     cat >> $BUILDHOME/run << EOF
 TESTREQ_PACKAGES=""
+ADD_REPOS=""
 EXTRA_REPOS="${EXTRA_REPOS:=}"
 TEST_REQUIRES="${TEST_REQUIRES:=}"
 if [ -x $TARGETBIN/tools-testing-what-release.sh ]; then
@@ -29,12 +30,14 @@ if [ -x $TARGETBIN/tools-testing-what-release.sh ]; then
   elif [ -f /home/build/$SRCDIR/packaging/.extra-repos ]; then
     EXTRA_REPOS=\`egrep "^(\$OSREL|\$OSREL2)\\s*:" /home/build/$SRCDIR/packaging/.extra-repos | cut -d':' -f 2-\`
   fi
+  ADD_REPOS=\`egrep "^(\$OSREL|\$OSREL2)\\s*:" /home/build/tools-tester.d/base-repos*.conf | cut -d':' -f 2-\`
 fi
+[ -n "\$EXTRA_REPOS" ] && ADD_REPOS="\$ADD_REPOS,\$EXTRA_REPOS"
 try=1
 while [ \$try -lt 5 ]
 do
  echo "====== Starting \$try. attempt to install packages"
- if $TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES" "\$EXTRA_REPOS" ""
+ if $TARGETBIN/install_package "$TARGET_PROJECT_NAME" "$OBS_REPO" "$PACKAGES" "$SPROJ" "\$TESTREQ_PACKAGES" "\$ADD_REPOS" ""
    then break
  fi
  try=\$((try + 1))
