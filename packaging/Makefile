@@ -1,4 +1,4 @@
-PKG_NAME := jenkins-worker-util
+PKG_NAME := tools-testing
 SPECFILE = $(addsuffix .spec, $(PKG_NAME))
 PKG_VERSION := $(shell grep '^Version: ' $(SPECFILE)|awk '{print $$2}')
 

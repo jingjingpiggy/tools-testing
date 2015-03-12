@@ -1,6 +1,6 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
-Name:       jenkins-worker-util
-Summary:    Utils for Otctools Jenkins worker
+Name:       tools-testing
+Summary:    Utilities for Tools tester Jenkins worker
 Version:    1.34.0
 Release:    1
 Group:      Development/Tools/Other
@@ -21,7 +21,7 @@ Requires: gptfdisk
 %endif
 
 %description
-Utils for Otctools Jenkins worker host
+Utilities for Tools tester Jenkins worker
 
 %prep
 %setup -q -n %{name}-%{version}
@@ -58,22 +58,21 @@ fi
 %{_bindir}/trigger_itest_verify.py
 %{python_sitelib}/pre_deployment_test/
 %{python_sitelib}/pre_deployment_test-*-py*.egg-info
-/etc/sudoers.d
+%dir /etc/sudoers.d
 %config /etc/sudoers.d/jenkins
 
-%package -n jenkins-worker-mgmt
+%package mgmt
 Summary:  Management scripts for jenkins-worker images
+Requires: tools-testing
 
-%description -n jenkins-worker-mgmt
-Management scripts for jenkins-worker-util package, to deploy
-images in various ways, and to run hda seed image update.
+%description mgmt
+Management scripts to go with tools-testing package, for deploying
+images to other workers in various ways, and to run hda seed image update.
 
-Requires: jenkins-worker-utils
-
-%files -n jenkins-worker-mgmt
+%files mgmt
 %defattr(-,root,root,-)
 
 %{_bindir}/otc-tools-update-kvm-seed-image.sh
 %{_bindir}/deploy-*.sh
-/etc/jenkins-worker
+%dir /etc/jenkins-worker
 %config /etc/jenkins-worker/workers.env
