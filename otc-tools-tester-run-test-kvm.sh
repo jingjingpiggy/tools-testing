@@ -16,8 +16,8 @@ additional_init() {
 TESTREQ_PACKAGES=""
 EXTRA_REPOS="${EXTRA_REPOS:=}"
 TEST_REQUIRES="${TEST_REQUIRES:=}"
-if [ -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
-  OSREL=\`$TARGETBIN/otc-tools-tester-system-what-release.sh\`
+if [ -x $TARGETBIN/tools-testing-what-release.sh ]; then
+  OSREL=\`$TARGETBIN/tools-testing-what-release.sh\`
   OSREL2=\`echo \$OSREL | sed s/-/_/g\`
   if [ -n "\$TEST_REQUIRES" ]; then
     TESTREQ_PACKAGES=\`echo "\$TEST_REQUIRES" | egrep "^(\$OSREL|\$OSREL2)\\s*:" | cut -d':' -f 2\`

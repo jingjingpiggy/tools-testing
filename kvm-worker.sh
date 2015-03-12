@@ -86,7 +86,7 @@ EOF
 
     # copy scripts that run inside KVM session
     mkdir -p $BUILDHOMEBIN
-    cp /usr/bin/install_package /usr/bin/otc-tools-tester-system-what-release.sh /usr/bin/run_tests $BUILDHOMEBIN
+    cp /usr/bin/install_package /usr/bin/tools-testing-what-release.sh /usr/bin/run_tests $BUILDHOMEBIN
 
     $additional_init $BUILDHOME
 

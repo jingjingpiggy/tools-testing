@@ -49,7 +49,7 @@ fi
 %{_bindir}/kvm-worker.sh
 %{_bindir}/otc-tools-tester-delete-merged-jobs.sh
 %{_bindir}/otc-tools-tester-run-test-kvm.sh
-%{_bindir}/otc-tools-tester-system-what-release.sh
+%{_bindir}/tools-testing-what-release.sh
 %{_bindir}/pre-deployment-test-worker.sh
 %{_bindir}/run_tests
 %{_bindir}/run-itest-kvm.sh

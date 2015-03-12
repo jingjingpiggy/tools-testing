@@ -1,5 +1,5 @@
 SH_FILES := install_package run_tests otc-tools-tester-run-test-kvm.sh \
-otc-tools-tester-system-what-release.sh \
+tools-testing-what-release.sh \
 kvm-worker.sh run-itest-kvm.sh \
 run-install-upgrade-test.sh \
 otc-tools-tester-delete-merged-jobs.sh otc-tools-update-kvm-seed-image.sh \
