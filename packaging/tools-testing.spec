@@ -35,7 +35,7 @@ images in various ways, and to run hda seed image update.
 Summary:  Tools tester jenkins-worker settings in otctools env
 Group:      Development/Tools/Other
 Requires: tools-testing
-Conflicts: tools-testing-settings-tizenorg
+#Conflicts: tools-testing-settings-tizenorg
 %description settings-otctools
 Settings for tools-testing package,
 describing repositories for tester VMs.
@@ -44,7 +44,7 @@ describing repositories for tester VMs.
 Summary:  Tools tester jenkins-worker settings in tizen.org env
 Group:      Development/Tools/Other
 Requires: tools-testing
-Conflicts: tools-testing-settings-otctools
+#Conflicts: tools-testing-settings-otctools
 %description settings-tizenorg
 Settings for tools-testing package,
 describing repositories for tester VMs.
