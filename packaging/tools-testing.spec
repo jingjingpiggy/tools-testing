@@ -21,7 +21,33 @@ Requires: gptfdisk
 %endif
 
 %description
-Utilities for Tools tester Jenkins worker
+Utilities to be run on Tools Tester Jenkins worker host, to prepare and start VM tester sessions
+
+%package mgmt
+Summary:  Management scripts for jenkins-worker images
+Group:      Development/Tools/Other
+Requires: tools-testing
+%description mgmt
+Management scripts for tools-testing package, to deploy
+images in various ways, and to run hda seed image update.
+
+%package settings-otctools
+Summary:  Tools tester jenkins-worker settings in otctools env
+Group:      Development/Tools/Other
+Requires: tools-testing
+Conflicts: tools-testing-settings-tizenorg
+%description settings-otctools
+Settings for tools-testing package,
+describing repositories for tester VMs.
+
+%package settings-tizenorg
+Summary:  Tools tester jenkins-worker settings in tizen.org env
+Group:      Development/Tools/Other
+Requires: tools-testing
+Conflicts: tools-testing-settings-otctools
+%description settings-tizenorg
+Settings for tools-testing package,
+describing repositories for tester VMs.
 
 %prep
 %setup -q -n %{name}-%{version}
@@ -41,9 +67,9 @@ if [ "$(getent group kvm)" ]; then
   usermod -G kvm jenkins
 fi
 
+###############################################
 %files
 %defattr(-,root,root,-)
-
 %{_bindir}/build-package
 %{_bindir}/install_package
 %{_bindir}/kvm-worker.sh
@@ -61,18 +87,22 @@ fi
 %dir /etc/sudoers.d
 %config /etc/sudoers.d/jenkins
 
-%package mgmt
-Summary:  Management scripts for jenkins-worker images
-Requires: tools-testing
-
-%description mgmt
-Management scripts to go with tools-testing package, for deploying
-images to other workers in various ways, and to run hda seed image update.
-
+###############################################
 %files mgmt
 %defattr(-,root,root,-)
-
 %{_bindir}/otc-tools-update-kvm-seed-image.sh
 %{_bindir}/deploy-*.sh
 %dir /etc/jenkins-worker
 %config /etc/jenkins-worker/workers.env
+
+###############################################
+%files settings-otctools
+%defattr(-,root,root,-)
+%dir /etc/tools-tester.d
+%config /etc/tools-tester.d/base-repos-otctools.conf
+
+###############################################
+%files settings-tizenorg
+%defattr(-,root,root,-)
+%dir /etc/tools-tester.d
+%config /etc/tools-tester.d/base-repos-tizenorg.conf
