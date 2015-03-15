@@ -92,13 +92,14 @@ sproject="$4"
 testreq_packages="$5"
 extra_repos="$6"
 noupd="$7"
+download_host="$8"
 
 if [ -x /usr/bin/apt-get -a -d /etc/apt/sources.list.d/ ] ; then
 # Ubuntu or Debian
    run_on="ubuntu"
    srclist=$ubuntu_repolist
-   [ -n "$project" ] && echo "deb http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/ /" >  $srclist
-   [ -n "$sproject" -a "/home:/tester:/$project" != "$sproject" ] && echo "deb http://download.otctools.jf.intel.com/$sproject/$repo/ /" >> $srclist
+   [ -n "$project" ] && echo "deb $download_host/home:/tester:/$project/$repo/ /" >  $srclist
+   [ -n "$sproject" -a "/home:/tester:/$project" != "$sproject" ] && echo "deb $download_host/$sproject/$repo/ /" >> $srclist
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" $srclist
    apt-get update
    [ "$noupd" != "noupdate" ] && apt-get upgrade -y --force-yes
@@ -107,12 +108,12 @@ elif [ -x /usr/bin/zypper -a -d $suse_repodir ] ; then
 # OpenSuse
    run_on="opensuse"
    if [ -n "$project" ]; then
-       baseurl="http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/"
+       baseurl="$download_host/home:/tester:/$project/$repo/"
        check_suse_duplicate_repo_add $baseurl $project
    fi
    reponame="tools-`echo \"$sproject\" | tr -d '[:punct:][:space:]'`"
    if [ -n "$sproject" ]; then
-       baseurl="http://download.otctools.jf.intel.com/$sproject/$repo/"
+       baseurl="$download_host/$sproject/$repo/"
        check_suse_duplicate_repo_add $baseurl $reponame
    fi
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" ""
@@ -124,9 +125,9 @@ elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d $fedora_repodir ] ; then
 # Fedora
    run_on="fedora"
    #srclist="/etc/yum.repos.d/otctools.repo"
-   url="http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/"
+   url="$download_host/home:/tester:/$project/$repo/"
    [ -n "$project" ] && create_rpm_repo $project $url
-   url="http://download.otctools.jf.intel.com/$sproject/$repo/"
+   url="$download_host/$sproject/$repo/"
    [ -n "$sproject" ] && create_rpm_repo "tools" $url
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" ""
    yum -y clean all
@@ -138,7 +139,7 @@ elif [ -x /usr/bin/pacman -a -d /etc/pacman.d ] ; then
    srclist=$arch_repolist
    reponame=`echo "home_tester_"$project"_"$repo`
    [ -n "$project" ] && echo "[$reponame]" >>  $srclist
-   [ -n "$project" ] && echo "Server = http://download.otctools.jf.intel.com/home:/tester:/$project/$repo/\$arch/" >>  $srclist
+   [ -n "$project" ] && echo "Server = $download_host/home:/tester:/$project/$repo/\$arch/" >>  $srclist
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" "$srclist"
    # update databases after adding a new repo(s)
    pacman -S --refresh

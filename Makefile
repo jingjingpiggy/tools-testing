@@ -18,7 +18,7 @@ install:
 	install -d $(DESTDIR)/etc/jenkins-worker
 	install -m 0644 workers.env $(DESTDIR)/etc/jenkins-worker
 	install -d $(DESTDIR)/etc/tools-tester.d
-	install -m 0644 base-repos-*.conf $(DESTDIR)/etc/tools-tester.d
+	install -m 0644 base-repos-*.conf servers-*.conf $(DESTDIR)/etc/tools-tester.d
 
 test:
 	checkbashisms $(SH_FILES)

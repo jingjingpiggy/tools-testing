@@ -19,7 +19,7 @@ if [ -x $TARGETBIN/otc-tools-tester-system-what-release.sh ]; then
   OSREL2=\`echo \$OSREL | sed s/-/_/g\`
   ADD_REPOS=\`egrep "^(\$OSREL|\$OSREL2)\\s*:" /home/build/tools-tester.d/base-repos*.conf | cut -d':' -f 2-\`
 fi
-$TARGETBIN/install_package "" "" "" "" "" "\$ADD_REPOS" ""
+$TARGETBIN/install_package "" "" "" "" "" "\$ADD_REPOS" "" ""
 EOF
 }
 

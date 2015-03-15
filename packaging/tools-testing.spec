@@ -100,9 +100,11 @@ fi
 %defattr(-,root,root,-)
 %dir /etc/tools-tester.d
 %config /etc/tools-tester.d/base-repos-otctools.conf
+%config /etc/tools-tester.d/servers-otctools.conf
 
 ###############################################
 %files settings-tizenorg
 %defattr(-,root,root,-)
 %dir /etc/tools-tester.d
 %config /etc/tools-tester.d/base-repos-tizenorg.conf
+%config /etc/tools-tester.d/servers-tizenorg.conf

@@ -109,7 +109,7 @@ EOF
 mkdir $LOGS
 EOF
     cat >>$BUILDHOME/run <<EOF
-$TARGETBIN/install_package "" "" "${package_name}" "" "" "${install_repo_parameter}" "" > $LOGS/install.log
+$TARGETBIN/install_package "" "" "${package_name}" "" "" "${install_repo_parameter}" "" "" > $LOGS/install.log
 EOF
 
     if [ ${PKGLIST+defined} ]; then
@@ -130,7 +130,7 @@ EOF
 $(revert_repo_store)
 EOF
         cat >>$BUILDHOME/run <<EOF
-$TARGETBIN/install_package "" "" "$package_name" "" "" "${upgrade_repo_parameter}" "noupdate" > $LOGS/upgrade.log
+$TARGETBIN/install_package "" "" "$package_name" "" "" "${upgrade_repo_parameter}" "noupdate" "" > $LOGS/upgrade.log
 EOF
 
         if [ ${PKGLIST+defined} ]; then
@@ -151,7 +151,7 @@ EOF
 $(revert_repo_store)
 EOF
         cat >>$BUILDHOME/run <<EOF
-$TARGETBIN/install_package "" "" "$package_name" "" "" "${upgrade_repo_parameter}" "" > $LOGS/reinstall.log
+$TARGETBIN/install_package "" "" "$package_name" "" "" "${upgrade_repo_parameter}" "" "" > $LOGS/reinstall.log
 EOF
 
         if [ ${PKGLIST+defined} ]; then
