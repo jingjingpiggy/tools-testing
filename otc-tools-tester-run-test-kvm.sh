@@ -33,7 +33,7 @@ if [ -x $TARGETBIN/tools-testing-what-release.sh ]; then
   ADD_REPOS=\`egrep "^(\$OSREL|\$OSREL2)\\s*:" /home/build/tools-tester.d/base-repos*.conf | cut -d':' -f 2-\`
 fi
 [ -n "\$EXTRA_REPOS" ] && ADD_REPOS="\$ADD_REPOS,\$EXTRA_REPOS"
-DOWNLOAD_HOST=\`grep "DOWNLOAD_HOST" /home/build/tools-tester.d/servers*.conf | cut -d'=' -f 2-\`
+DOWNLOAD_HOST=\`grep "DOWNLOAD_HOST" /home/build/tools-tester.d/servers*.conf | cut -d':' -f 2-\`
 try=1
 while [ \$try -lt 5 ]
 do

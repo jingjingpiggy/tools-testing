@@ -69,7 +69,7 @@ additional_init() {
         # args for install_package:
         # (project, repo, packages, sproject, testreq_packages, extra_repos)
         cat >>$BUILDHOME/run <<EOF
-DOWNLOAD_HOST=\`grep "DOWNLOAD_HOST" /home/build/tools-tester.d/servers*.conf | cut -f 2-\`
+DOWNLOAD_HOST=\`grep "DOWNLOAD_HOST" /home/build/tools-tester.d/servers*.conf | cut -d':' -f 2-\`
 $TARGETBIN/install_package "$proj" "$OBS_REPO" "$pack" "$sproj" "" "$extra_repo" "" "\$DOWNLOAD_HOST"
 EOF
     done
