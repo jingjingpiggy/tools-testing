@@ -6,7 +6,7 @@ Release:    1
 Group:      Development/Tools/Other
 License:    Intel Proprietary
 BuildArch:  noarch
-URL:        https://otctools.jf.intel.com/pm/projects/tools-testing
+URL:        https://review.tizendev.org/gerrit/
 Source0:    %{name}-%{version}.tar.gz
 
 BuildRequires:  coreutils
@@ -73,8 +73,8 @@ fi
 %{_bindir}/build-package
 %{_bindir}/install_package
 %{_bindir}/kvm-worker.sh
-%{_bindir}/otc-tools-tester-delete-merged-jobs.sh
-%{_bindir}/otc-tools-tester-run-test-kvm.sh
+%{_bindir}/tools-testing-delete-merged-jobs.sh
+%{_bindir}/tools-testing-run-test.sh
 %{_bindir}/tools-testing-what-release.sh
 %{_bindir}/pre-deployment-test-worker.sh
 %{_bindir}/run_tests
@@ -90,7 +90,7 @@ fi
 ###############################################
 %files mgmt
 %defattr(-,root,root,-)
-%{_bindir}/otc-tools-update-kvm-seed-image.sh
+%{_bindir}/tools-testing-update-seed-images.sh
 %{_bindir}/deploy-*.sh
 %dir /etc/jenkins-worker
 %config /etc/jenkins-worker/workers.env
