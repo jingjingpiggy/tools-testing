@@ -124,11 +124,8 @@ elif [ -x /usr/bin/zypper -a -d $suse_repodir ] ; then
 elif [ \( -x /bin/yum -o -x /usr/bin/yum \) -a -d $fedora_repodir ] ; then
 # Fedora
    run_on="fedora"
-   #srclist="/etc/yum.repos.d/otctools.repo"
-   url="$download_host/home:/tester:/$project/$repo/"
-   [ -n "$project" ] && create_rpm_repo $project $url
-   url="$download_host/$sproject/$repo/"
-   [ -n "$sproject" ] && create_rpm_repo "tools" $url
+   [ -n "$project" ] && create_rpm_repo $project "$download_host/home:/tester:/$project/$repo/"
+   [ -n "$sproject" ] && create_rpm_repo "tools" "$download_host/$sproject/$repo/"
    [ -n "$extra_repos" ] && add_extra_repos $run_on "$extra_repos" ""
    yum -y clean all
    [ "$noupd" != "noupdate" ] && yum -y update
