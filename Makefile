@@ -1,9 +1,7 @@
-SH_FILES := install_package run_tests otc-tools-tester-run-test-kvm.sh \
-tools-testing-what-release.sh \
-kvm-worker.sh run-itest-kvm.sh \
-run-install-upgrade-test.sh \
-otc-tools-tester-delete-merged-jobs.sh otc-tools-update-kvm-seed-image.sh \
-pre-deployment-test-worker.sh \
+SH_FILES := install_package run_tests tools-testing-run-test.sh \
+tools-testing-what-release.sh kvm-worker.sh run-itest-kvm.sh \
+run-install-upgrade-test.sh tools-testing-delete-merged-jobs.sh \
+tools-testing-update-seed-images.sh pre-deployment-test-worker.sh \
 deploy-all-new-hda-to-all-workers.sh deploy-one-file-to-all-workers.sh \
 deploy-one-new-hda-to-all-workers.sh deploy-images-to-one-worker.sh \
 deploy-one-hda-to-all-workers.sh

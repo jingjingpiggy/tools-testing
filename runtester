@@ -7,7 +7,7 @@
 # other scripts.
 #
 # This script relies on fact that qemu VM gets 10.0.2.2
-# configured as default GW. We us it to see that network
+# configured as default GW. We use it to see that network
 # connectivity has reached good state.
 #
 

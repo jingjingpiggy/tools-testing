@@ -9,7 +9,7 @@ TESTER_PROJECT = "Tools" \
     "-%(GERRIT_CHANGE_NUMBER)s" \
     ".%(GERRIT_PATCHSET_NUMBER)s"
 
-# Rules defined by developing workflow, also be implemented by OTC-Tools-Tester
+# Rules defined by developing workflow, also be implemented by Tools Tester
 # Items are (Gerrit Project, OBS Project, Packages)
 CHAINS = [
     ("gbs", "Tools", ["gbs"]),
