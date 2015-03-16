@@ -136,21 +136,23 @@ store_repo(){
     proj=$1
     depends_proj=$2
     extra_repo=$3
+
+    download_host=`grep "DOWNLOAD_HOST" /etc/tools-tester.d/servers*.conf | cut -d':' -f 2-`
     if echo "$proj" | grep "Tools:/Devel" ;then
-        repo_str="http://download.otctools.jf.intel.com/$proj"
+        repo_str="$download_host/$proj"
     elif echo "$proj" | grep "Tools" ;then
-        repo_str="http://download.otctools.jf.intel.com/$proj"
+        repo_str="$download_host/$proj"
     elif echo $proj | grep "Tools-mic-" ;then
-        repo_str="http://download.otctools.jf.intel.com/home:/tester:/$proj/"
+        repo_str="$download_host/home:/tester:/$proj/"
     else
         repo_str=''
     fi
     if [ -n "$depends_proj" ];then
         if echo "$depends_proj" | grep "Tools:/Devel" ;then
             if [ -z "$repo_str" ];then
-                repo_str="http://download.otctools.jf.intel.com/$depends_proj"
+                repo_str="$download_host/$depends_proj"
             else
-                repo_str="$repo_str;http://download.otctools.jf.intel.com/$depends_proj"
+                repo_str="$repo_str;$download_host/$depends_proj"
             fi
         fi
     fi
