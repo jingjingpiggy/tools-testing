@@ -13,5 +13,5 @@ IMAGES=`ls kvm-seed-hda-*-mgmt`
 for SRC in $IMAGES; do
   IMG=`echo $SRC | sed 's/-mgmt//g'`
   echo src=$SRC dest=$IMG
-  $RSYNC -S $SRC $W:$JENKINS_HOME/$IMG
+  $RSYNC $SRC $W:$JENKINS_HOME/$IMG
 done
