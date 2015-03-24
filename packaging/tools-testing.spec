@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 Name:       tools-testing
 Summary:    Utilities for Tools tester Jenkins worker
-Version:    1.35.0
+Version:    1.35.1
 Release:    1
 Group:      Development/Tools/Other
 License:    Intel Proprietary
