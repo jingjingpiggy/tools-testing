@@ -236,12 +236,14 @@ compose_vnc_opt() {
 
 compose_numa_opt() {
   # Bind to CPUs and mem of one node on a NUMA system.
+  # Note that 'which' will echo the name of binary which
+  # becomes 1st part of output
   opt=""
   if which numactl; then
     numanodes=`numactl --hardware | grep 'available:' | awk '{print $2}'`
     if [ $numanodes -gt 1 ]; then
       idx=$((EXECUTOR_NUMBER%numanodes))
-      opt="numactl --preferred=$idx --cpunodebind=$idx"
+      opt=" --preferred=$idx --cpunodebind=$idx"
     fi
   fi
 
