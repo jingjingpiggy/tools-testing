@@ -66,7 +66,9 @@ if [ "$role" != "Builder" ]; then
 fi
 
 if [ $# -lt 2 ]; then
-  echo "Usage: PACKAGE SOURCE_PROJECT [-m KVM_MEMSZ] [-s NAME_SUFFIX] [-u GIT_URL] [--vm-timeout TMO]"
+  printf "\
+Usage: PACKAGE SOURCE_PROJECT [-m KVM_MEMSZ] [-s NAME_SUFFIX] [-u GIT_URL]\n\
+       [--skip-disabled] [--vm-timeout TMO]\n"
   exit 1
 fi
 
