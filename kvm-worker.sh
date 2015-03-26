@@ -116,12 +116,14 @@ launch_kvm() {
     net_opt=$(compose_net_opt)
     vnc_opt=$(compose_vnc_opt)
     numa_opt=$(compose_numa_opt)
+    tmo_opt=${TESTER_VM_TMO:=}
+    [ -z $tmo_opt ] && tmo_opt=40m
     # Run tests by starting KVM, executes /home/build/run and shuts down.
     # Pipe output through buffering utility to avoid high load on server.
     date
     show_heading "     START tester VM:"
     set -x
-    /usr/bin/timeout 12h $numa_opt qemu-kvm -name $label -M pc \
+    /usr/bin/timeout $tmo_opt $numa_opt qemu-kvm -name $label -M pc \
         $cpu_opt $mem_opt $net_opt \
         -drive file=$KVM_SEED_HDA,snapshot=on \
         -drive file=$KVM_HDB $vnc_opt -nographic | buffer -s 4096

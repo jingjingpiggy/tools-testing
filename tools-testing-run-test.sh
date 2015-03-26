@@ -66,14 +66,14 @@ if [ "$role" != "Builder" ]; then
 fi
 
 if [ $# -lt 2 ]; then
-  echo "Usage: PACKAGE SOURCE_PROJECT [-m KVM_MEMSZ] [-s NAME_SUFFIX] [-u GIT_URL]"
+  echo "Usage: PACKAGE SOURCE_PROJECT [-m KVM_MEMSZ] [-s NAME_SUFFIX] [-u GIT_URL] [--vm-timeout TMO]"
   exit 1
 fi
 
 NAME_SUFFIX=""
 GIT_URL=""
 SKIP_DISABLED_BUILDS=""
-eval set -- $(getopt -l skip-disabled -o s:u:m: -- "$@")
+eval set -- $(getopt -l skip-disabled,vm-timeout: -o s:u:m: -- "$@")
 while [ $# -gt 0 ]
 do
     case "$1" in
@@ -85,6 +85,7 @@ do
          shift
          ;;
     (--skip-disabled) SKIP_DISABLED_BUILDS=1;;
+    (--vm-timeout) TESTER_VM_TMO=$2; shift;;
     (--) shift; break;;
     (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
     (*)  break;;
