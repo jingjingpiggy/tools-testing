@@ -73,7 +73,8 @@ fi
 NAME_SUFFIX=""
 GIT_URL=""
 SKIP_DISABLED_BUILDS=""
-eval set -- $(getopt -l skip-disabled,vm-timeout: -o s:u:m: -- "$@")
+options=$(getopt -l skip-disabled,vm-timeout: -o s:u:m: -- "$@")
+eval set -- $options
 while [ $# -gt 0 ]
 do
     case "$1" in
