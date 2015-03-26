@@ -109,6 +109,24 @@ check_kvm_args() {
     fi
 }
 
+find_tmpdir() {
+    tmpd="${TMPDIR:=}"
+    if [ -z $tmpd ]; then
+      max_free_kb=0
+      for dir in /var/lib/jenkins/tmp /var/lib/jenkins /tmp
+        do
+          if [ -d $dir ]; then
+            free_kb=`df -P $dir | tail -1 | awk '{print $4}'`
+            if [ $free_kb -gt $max_free_kb ]; then
+              max_free_kb=$free_kb
+              tmpd=$dir
+            fi
+          fi
+        done
+    fi
+    echo "$tmpd"
+}
+
 launch_kvm() {
     set +x
     cpu_opt=$(compose_cpu_opt $OBS_ARCH)
@@ -118,11 +136,13 @@ launch_kvm() {
     numa_opt=$(compose_numa_opt)
     tmo_opt=${TESTER_VM_TMO:=}
     [ -z $tmo_opt ] && tmo_opt=40m
+    tmpdir=$(find_tmpdir)
     # Run tests by starting KVM, executes /home/build/run and shuts down.
     # Pipe output through buffering utility to avoid high load on server.
     date
     show_heading "     START tester VM:"
     set -x
+    export TMPDIR=$tmpdir
     /usr/bin/timeout $tmo_opt $numa_opt qemu-kvm -name $label -M pc \
         $cpu_opt $mem_opt $net_opt \
         -drive file=$KVM_SEED_HDA,snapshot=on \
