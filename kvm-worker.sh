@@ -201,7 +201,8 @@ compose_cpu_opt() {
 
 compose_net_opt() {
   # create unique MAC address from static part=52, node IP, slot number, process number
-  # node IP last octet comes from SSH_CONNECTION="10.237.71.24 44908 10.237.71.173 22"
+  # node IP last octet (D2 in example below) is taken from env.var SSH_CONNECTION:
+  # "A1.B1.C1.D1 PORT A2.B2.C2.D2 22"
   nodenum=`echo "$SSH_CONNECTION" | awk '{print $3}' | awk -F\. '{printf("%02x", $4);}'`
   slotnum=`printf "%02x" $((EXECUTOR_NUMBER%256))`
   pid=$$
