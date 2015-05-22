@@ -31,20 +31,10 @@ Requires: tools-testing
 Management scripts for tools-testing package, to deploy
 images in various ways, and to run hda seed image update.
 
-%package settings-otctools
-Summary:  Tools tester jenkins-worker settings in otctools env
-Group:      Development/Tools/Other
-Requires: tools-testing
-#Conflicts: tools-testing-settings-tizenorg
-%description settings-otctools
-Settings for tools-testing package,
-describing repositories for tester VMs.
-
 %package settings-tizenorg
 Summary:  Tools tester jenkins-worker settings in tizen.org env
 Group:      Development/Tools/Other
 Requires: tools-testing
-#Conflicts: tools-testing-settings-otctools
 %description settings-tizenorg
 Settings for tools-testing package,
 describing repositories for tester VMs.
@@ -94,13 +84,6 @@ fi
 %{_bindir}/deploy-*.sh
 %dir /etc/jenkins-worker
 %config /etc/jenkins-worker/workers.env
-
-###############################################
-%files settings-otctools
-%defattr(-,root,root,-)
-%dir /etc/tools-tester.d
-%config /etc/tools-tester.d/base-repos-otctools.conf
-%config /etc/tools-tester.d/servers-otctools.conf
 
 ###############################################
 %files settings-tizenorg
