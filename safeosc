@@ -1,6 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # vim: ts=4 et sw=4 sts=4 ai sta:
+#
+# Copyright (c) 2013, 2014, 2015 Intel, Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; version 2 of the License
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for more details.
 
 """
 This script is a modification of /usr/bin/osc. original code is wrapped into
@@ -10,7 +21,6 @@ If exception is caused by known osc bug this script tries to call osc several
 times as there is a chanse that next call will succeed.
 
 Author: Ed Bartosh <eduard.bartosh@intel.com>
-Licence: GPLv2
 """
 
 # this wrapper exists so it can be put into /usr/bin, but still allows the
