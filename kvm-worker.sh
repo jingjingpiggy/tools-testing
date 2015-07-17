@@ -206,7 +206,8 @@ compose_cpu_opt() {
  if [ $arch = "i586" ]; then
    echo "-cpu pentium3"
  else
-   echo "-cpu core2duo"
+#   echo "-cpu core2duo"
+   echo ""
  fi
 }
 
