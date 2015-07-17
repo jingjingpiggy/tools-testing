@@ -1,4 +1,19 @@
 ----------------------------------------------------------------------------
+Fri Jul 17 08:25:30 UTC 2015 olev.kartau@intel.com - 2.1.0
+
+- unify version number with tools-testing-settings pkg
+- Dont specify cpu model for 64-bit targets
+- Added file COPYING and GPLv2 license info in scripts
+- Detached settings-otctools part from this source set
+- replace real IP address of 10.237 in comment with abstract form
+- baserepos-tizenorg: change some mirror paths to mirrors.vlan200
+- numactl binary was mentioned twice
+- Define TMPDIR before launching tester VM
+- Added forgotten skip-disabled from Usage
+- Call getopt separately or script does not fail on error
+- Added option for VM session timeout
+
+----------------------------------------------------------------------------
 Tue Mar 24 10:11:05 UTC 2015 olev.kartau@intel.com - 1.35.1
 
 - tizen.org settings: use osrepo http for opensuse base repos
